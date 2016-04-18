@@ -1,0 +1,7 @@
+{
+  "hpe": {
+    "user": "",
+    "password": "",
+    "serverUrl": "http://myd-vm19791.hpswlabs.adapps.hp.com:8081"
+  }
+}
