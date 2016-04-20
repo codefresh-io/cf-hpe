@@ -6,13 +6,11 @@ import Hpe from '../index';
 const expect = chai.expect;
 
 describe('HPE API Integration', function () {
-  it('Should return success for authentication', function (done) {
+  it.only('Should return success for authentication', function (done) {
     Hpe
       .session()
       .subscribe(session => {
-          expect(session).to.be.a('object');
-          expect(session).to.have.property('jar');
-
+          expect(session).to.have.property('request');
           done();
         },
         error => done(error));
@@ -24,7 +22,7 @@ describe('HPE API Integration', function () {
       .flatMap(session => {
         const data = {
           name: _.uniqueId("ci-server-"),
-          instance_id: _.uniqueId("instance_id")
+          instance_id: _.uniqueId("instance-id-")
         };
 
         return Hpe.createServer(session, data);
