@@ -11,14 +11,12 @@ describe('HPE API Integration', function () {
       .session()
       .subscribe(session => {
           expect(session).to.have.property('request');
-          expect(session).to.have.property('cookies');
-          expect(session.cookies).to.
           done();
         },
         error => done(error));
   });
 
-  it('Should return success for create server', function (done) {
+  it.only('Should return success for create server', function (done) {
     Hpe
       .session()
       .flatMap(session => {
