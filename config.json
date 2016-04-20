@@ -2,6 +2,8 @@
   "hpe": {
     "user": "codefresh_8l9mp93olgz8wfr3657wgpx7g",
     "password": "%5cc71e9ba1918F",
+    "sharedSpaces": "1001",
+    "workspaces": "1002",
     "serverUrl": "http://myd-vm19791.hpswlabs.adapps.hp.com:8081"
   }
 }
