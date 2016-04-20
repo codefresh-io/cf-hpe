@@ -1,8 +1,8 @@
 'use strict';
 import _ from 'lodash';
-import util from 'util';
+import Util from 'util';
 import Chai from 'chai';
-import uuid from 'node-uuid';
+import Uuid from 'node-uuid';
 import Hpe from '../index';
 
 const expect = Chai.expect;
@@ -19,17 +19,20 @@ describe('HPE API Integration', function () {
   });
 
   it.only('Should return success for create server', function (done) {
+    const request = {
+      name: Util.format("ci-server-%d", _.now()),
+      instance_id: Uuid.v1()
+    };
+
     Hpe
       .session()
       .flatMap(session => {
-        const data = {
-          name: util.format("ci-server-%d", _.now()),
-          instance_id: uuid.v1()
-        };
-
-        return Hpe.createServer(session, data);
+        return Hpe.createServer(session, request);
       })
-      .subscribe(server => {
+      .subscribe(response => {
+          expect(response.name).to.equal(request.name);
+          expect(response.instance_id).to.equal(request.instance_id);
+          expect(response.server_type).to.equal('CodeFresh');
           done();
         },
 
