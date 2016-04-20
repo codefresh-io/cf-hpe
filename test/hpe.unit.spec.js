@@ -6,7 +6,7 @@ import Hpe from '../index';
 const expect = chai.expect;
 
 describe('HPE API Integration', function () {
-  it.only('Should return success for authentication', function (done) {
+  it('Should return success for authentication', function (done) {
     Hpe
       .session()
       .subscribe(session => {
@@ -16,7 +16,7 @@ describe('HPE API Integration', function () {
         error => done(error));
   });
 
-  it('Should return success for create server', function (done) {
+  it.only('Should return success for create server', function (done) {
     Hpe
       .session()
       .flatMap(session => {
