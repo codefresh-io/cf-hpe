@@ -7,10 +7,10 @@ import Hpe from '../index';
 
 const expect = Chai.expect;
 
-describe('Hpe Integration', function () {
+describe('Hpe', function () {
   this.timeout(5000);
 
-  it.skip('Authentication', function (done) {
+  it.skip('session', function (done) {
     Hpe
       .session()
       .subscribe(session => {
@@ -20,7 +20,7 @@ describe('Hpe Integration', function () {
         error => done(error));
   });
 
-  it.skip('Create Server', function (done) {
+  it('createServer', function (done) {
     const request = {
       name: Util.format('ci-server-%d', _.now()),
       instance_id: Uuid.v1()
@@ -30,6 +30,7 @@ describe('Hpe Integration', function () {
       .session()
       .flatMap(session => Hpe.createServer(session, request))
       .subscribe(response => {
+          expect(response.id).to.be.a('number');
           expect(response.name).to.equal(request.name);
           expect(response.instance_id).to.equal(request.instance_id);
           expect(response.server_type).to.equal('CodeFresh');
@@ -39,7 +40,7 @@ describe('Hpe Integration', function () {
         error => done(error));
   });
 
-  it('Create Pipeline', function (done) {
+  it('createPipeline', function (done) {
     const serverID = 1018;
     const pipelineName = Util.format('pipeline-%d', _.now());
     const rootJobName = Util.format('pipeline-job-%d', _.now());
@@ -87,6 +88,8 @@ describe('Hpe Integration', function () {
       .session()
       .flatMap(session => Hpe.createPipeline(session, request))
       .subscribe(response => {
+          expect(response.id).to.be.a('number');
+          expect(response.root_job.id).to.be.a('number');
           expect(response.ci_server.id).to.equal(serverID);
           expect(response.name).to.equal(pipelineName);
           done();
@@ -95,8 +98,8 @@ describe('Hpe Integration', function () {
         error => done(error));
   });
 
-  it.skip('Create Pipeline Build', function (done) {
-    const serverID = 1001;
+  it('createPipelineBuild', function (done) {
+    const serverID = 1018;
     const pipelineName = Util.format('pipeline-%d', _.now());
     const rootJobName = Util.format('pipeline-job-%d', _.now());
 
