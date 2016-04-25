@@ -38,17 +38,46 @@ describe('Hpe Integration', function () {
   });
 
   it.only('Create Pipeline', function (done) {
+    this.timeout(5000);
+    const serverID = 1001;
+    const pipelineName = Util.format('pipeline-%d', _.now());
+    const rootJobName = Util.format('pipeline-job-%d', _.now());
+
     const request = {
-      name: Util.format('pipeline-%d', _.now()),
+      name: pipelineName,
       ci_server: {
         type: 'ci_server',
-        id: 1003
+        id: serverID
       },
-      root_job_ci_id: "job-ci-id-02",
+      root_job_ci_id: rootJobName,
       jobs: [
         {
-          jobCiId: "job-ci-id-02",
-          name: "job-ci-id-02"
+          jobCiId: rootJobName,
+          name: rootJobName
+        },
+        {
+          jobCiId: "clone-repository",
+          name: "Clone Repository"
+        },
+        {
+          jobCiId: "build-dockerfile",
+          name: "Build Dockerfile"
+        },
+        {
+          jobCiId: "unit-test-script",
+          name: "Unit Test Script"
+        },
+        {
+          jobCiId: "push-docker-registry",
+          name: "Push to Docker Registry"
+        },
+        {
+          jobCiId: "integration-test-script",
+          name: "Integration Test Script"
+        },
+        {
+          jobCiId: "deploy-script",
+          name: "Deploy Script"
         }
       ]
     };
@@ -57,6 +86,8 @@ describe('Hpe Integration', function () {
       .session()
       .flatMap(session => Hpe.createPipeline(session, request))
       .subscribe(response => {
+          expect(response.ci_server.id).to.equal(serverID);
+          expect(response.name).to.equal(pipelineName);
           done();
         },
 
