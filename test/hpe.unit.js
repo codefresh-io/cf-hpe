@@ -2,7 +2,6 @@
 import _ from 'lodash';
 import Util from 'util';
 import Chai from 'chai';
-import Uuid from 'node-uuid';
 import Hpe from '../index';
 
 const expect = Chai.expect;
@@ -43,7 +42,6 @@ describe('Hpe', function () {
           mock.serverInstanceID = response.instance_id;
           done();
         },
-
         error => done(error));
   });
 
@@ -74,53 +72,25 @@ describe('Hpe', function () {
           mock.rootJobID = response.root_job_ci_id;
           done();
         },
-
         error => done(error));
   });
 
-  it.skip('4-report-pipeline-build', function (done) {
-    const serverInstanceID = 1018;
-    const pipelineName = Util.format('pipeline-%d', _.now());
-    const rootJobName = Util.format('pipeline-job-%d', _.now());
-
-    const request = {
-      serverCiId: serverInstanceID,
-      jobCiId: "string",
-      buildCiId: "string",
-      buildName: "string",
+  it('4-report-pipeline-build', function (done) {
+    const build = {
+      serverID: mock.serverID,
+      jobID: mock.rootJobID,
       startTime: _.now(),
       duration: 1000,
-      status: "running",
-      result: "success",
-      "parameters": [
-        {
-          "name": "string",
-          "type": "boolean",
-          "description": "string",
-          "choices": [
-            "string"
-          ],
-          "defaultValue": "string",
-          "value": "string"
-        }
-      ],
-      "causes": [
-        {
-          "jobCiId": "string",
-          "buildCiId": "string"
-        }
-      ]
+      status: 'finished',
+      result: 'success',
     };
 
     Hpe
-      .session()
-      .flatMap(session => Hpe.createPipeline(session, request))
+      .reportPipelineBuildStatus(mock.session, build)
       .subscribe(response => {
-          expect(response.ci_server.id).to.equal(serverID);
-          expect(response.name).to.equal(pipelineName);
+
           done();
         },
-
         error => done(error));
   });
 });
