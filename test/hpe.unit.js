@@ -29,16 +29,16 @@ describe('Hpe', function () {
   });
 
   it('2-create-server', function (done) {
-    const request = {
+    const server = {
       name: Util.format('Codefresh %d', _.now())
     };
 
     Hpe
-      .createServer(this.mock.session, request)
+      .createServer(this.mock.session, server)
       .subscribe(response => {
           expect(response.id).to.be.a('number');
-          expect(response.name).to.equal(request.name);
-          expect(response.instance_id).to.equal(_.kebabCase(request.name));
+          expect(response.name).to.equal(server.name);
+          expect(response.instance_id).to.equal(_.kebabCase(server.name));
           expect(response.server_type).to.equal('Codefresh');
 
           this.mock.serverID = response.id;
@@ -50,58 +50,19 @@ describe('Hpe', function () {
         error => done(error));
   });
 
-  it.skip('3-create-pipeline', function (done) {
-    const serverID = 1018;
-    const pipelineName = Util.format('pipeline-%d', _.now());
-    const rootJobName = Util.format('pipeline-job-%d', _.now());
-
-    const request = {
-      name: pipelineName,
-      ci_server: {
-        type: 'ci_server',
-        id: serverID
-      },
-      root_job_ci_id: rootJobName,
-      jobs: [
-        {
-          jobCiId: rootJobName,
-          name: rootJobName
-        },
-        {
-          jobCiId: "clone-repository",
-          name: "Clone Repository"
-        },
-        {
-          jobCiId: "build-dockerfile",
-          name: "Build Dockerfile"
-        },
-        {
-          jobCiId: "unit-test-script",
-          name: "Unit Test Script"
-        },
-        {
-          jobCiId: "push-docker-registry",
-          name: "Push to Docker Registry"
-        },
-        {
-          jobCiId: "integration-test-script",
-          name: "Integration Test Script"
-        },
-        {
-          jobCiId: "deploy-script",
-          name: "Deploy Script"
-        }
-      ]
+  it('3-create-pipeline', function (done) {
+    const pipeline = {
+      serverID: this.mock.serverID,
+      name: Util.format('Pipeline %d', _.now()),
     };
 
     Hpe
-      .session()
-      .flatMap(session => Hpe.createPipeline(session, request))
+      .createPipeline(this.mock.session, pipeline)
       .subscribe(response => {
           expect(response.id).to.be.a('number');
           expect(response.root_job.id).to.be.a('number');
-          expect(response.ci_server.id).to.equal(serverID);
-          expect(response.name).to.equal(pipelineName);
+          expect(response.ci_server.id).to.equal(this.mock.serverID);
+          expect(response.name).to.equal(pipeline.name);
           done();
         },
 
