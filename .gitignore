@@ -4,6 +4,7 @@
 
 # User-specific stuff:
 .idea/
+*.tmp
 
 ## File-based project format:
 *.iws
