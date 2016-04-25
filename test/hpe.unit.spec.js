@@ -8,7 +8,9 @@ import Hpe from '../index';
 const expect = Chai.expect;
 
 describe('Hpe Integration', function () {
-  it('Authentication', function (done) {
+  this.timeout(5000);
+
+  it.skip('Authentication', function (done) {
     Hpe
       .session()
       .subscribe(session => {
@@ -18,7 +20,7 @@ describe('Hpe Integration', function () {
         error => done(error));
   });
 
-  it('Create Server', function (done) {
+  it.skip('Create Server', function (done) {
     const request = {
       name: Util.format('ci-server-%d', _.now()),
       instance_id: Uuid.v1()
@@ -37,9 +39,8 @@ describe('Hpe Integration', function () {
         error => done(error));
   });
 
-  it.only('Create Pipeline', function (done) {
-    this.timeout(5000);
-    const serverID = 1001;
+  it('Create Pipeline', function (done) {
+    const serverID = 1018;
     const pipelineName = Util.format('pipeline-%d', _.now());
     const rootJobName = Util.format('pipeline-job-%d', _.now());
 
@@ -78,6 +79,52 @@ describe('Hpe Integration', function () {
         {
           jobCiId: "deploy-script",
           name: "Deploy Script"
+        }
+      ]
+    };
+
+    Hpe
+      .session()
+      .flatMap(session => Hpe.createPipeline(session, request))
+      .subscribe(response => {
+          expect(response.ci_server.id).to.equal(serverID);
+          expect(response.name).to.equal(pipelineName);
+          done();
+        },
+
+        error => done(error));
+  });
+
+  it.skip('Create Pipeline Build', function (done) {
+    const serverID = 1001;
+    const pipelineName = Util.format('pipeline-%d', _.now());
+    const rootJobName = Util.format('pipeline-job-%d', _.now());
+
+    const request = {
+      serverCiId: serverID,
+      jobCiId: "string",
+      buildCiId: "string",
+      buildName: "string",
+      startTime: _.now(),
+      duration: 1000,
+      status: "running",
+      result: "success",
+      "parameters": [
+        {
+          "name": "string",
+          "type": "boolean",
+          "description": "string",
+          "choices": [
+            "string"
+          ],
+          "defaultValue": "string",
+          "value": "string"
+        }
+      ],
+      "causes": [
+        {
+          "jobCiId": "string",
+          "buildCiId": "string"
         }
       ]
     };
