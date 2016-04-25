@@ -8,39 +8,49 @@ import Hpe from '../index';
 const expect = Chai.expect;
 
 describe('Hpe', function () {
-  this.timeout(5000);
+  before(function() {
+    this.timeout(5000);
+    this.mock = {
+      session: undefined,
+      serverID: undefined
+    };
 
-  it.skip('session', function (done) {
+  });
+
+  it('1-session', function (done) {
     Hpe
       .session()
       .subscribe(session => {
           expect(session).to.have.property('request');
+          this.mock.session = session;
           done();
         },
         error => done(error));
   });
 
-  it('createServer', function (done) {
+  it('2-create-server', function (done) {
     const request = {
-      name: Util.format('ci-server-%d', _.now()),
-      instance_id: Uuid.v1()
+      name: Util.format('Codefresh %d', _.now())
     };
 
     Hpe
-      .session()
-      .flatMap(session => Hpe.createServer(session, request))
+      .createServer(this.mock.session, request)
       .subscribe(response => {
           expect(response.id).to.be.a('number');
           expect(response.name).to.equal(request.name);
-          expect(response.instance_id).to.equal(request.instance_id);
-          expect(response.server_type).to.equal('CodeFresh');
+          expect(response.instance_id).to.equal(_.kebabCase(request.name));
+          expect(response.server_type).to.equal('Codefresh');
+
+          this.mock.serverID = response.id;
+          this.mock.serverInstanceID = response.instance_id;
+
           done();
         },
 
         error => done(error));
   });
 
-  it('createPipeline', function (done) {
+  it.skip('3-create-pipeline', function (done) {
     const serverID = 1018;
     const pipelineName = Util.format('pipeline-%d', _.now());
     const rootJobName = Util.format('pipeline-job-%d', _.now());
@@ -98,13 +108,13 @@ describe('Hpe', function () {
         error => done(error));
   });
 
-  it('createPipelineBuild', function (done) {
-    const serverID = 1018;
+  it.skip('4-report-pipeline-build', function (done) {
+    const serverInstanceID = 1018;
     const pipelineName = Util.format('pipeline-%d', _.now());
     const rootJobName = Util.format('pipeline-job-%d', _.now());
 
     const request = {
-      serverCiId: serverID,
+      serverCiId: serverInstanceID,
       jobCiId: "string",
       buildCiId: "string",
       buildName: "string",
