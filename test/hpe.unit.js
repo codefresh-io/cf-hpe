@@ -8,21 +8,19 @@ import Hpe from '../index';
 const expect = Chai.expect;
 
 describe('Hpe', function () {
-  before(function() {
-    this.timeout(5000);
-    this.mock = {
-      session: undefined,
-      serverID: undefined
-    };
-
-  });
+  this.timeout(5000);
+  const mock = {
+    session: undefined,
+    serverID: undefined,
+    rootJobID: undefined
+  };
 
   it('1-session', function (done) {
     Hpe
       .session()
-      .subscribe(session => {
+      .subscribe(function(session) {
           expect(session).to.have.property('request');
-          this.mock.session = session;
+          mock.session = session;
           done();
         },
         error => done(error));
@@ -34,16 +32,15 @@ describe('Hpe', function () {
     };
 
     Hpe
-      .createServer(this.mock.session, server)
-      .subscribe(response => {
+      .createServer(mock.session, server)
+      .subscribe(function (response) {
           expect(response.id).to.be.a('number');
           expect(response.name).to.equal(server.name);
           expect(response.instance_id).to.equal(_.kebabCase(server.name));
           expect(response.server_type).to.equal('Codefresh');
 
-          this.mock.serverID = response.id;
-          this.mock.serverInstanceID = response.instance_id;
-
+          mock.serverID = response.id;
+          mock.serverInstanceID = response.instance_id;
           done();
         },
 
@@ -52,17 +49,19 @@ describe('Hpe', function () {
 
   it('3-create-pipeline', function (done) {
     const pipeline = {
-      serverID: this.mock.serverID,
-      name: Util.format('Pipeline %d', _.now()),
+      serverID: mock.serverID,
+      name: Util.format('Codefresh %d', _.now()),
     };
 
     Hpe
-      .createPipeline(this.mock.session, pipeline)
-      .subscribe(response => {
+      .createPipeline(mock.session, pipeline)
+      .subscribe(function(response) {
           expect(response.id).to.be.a('number');
           expect(response.root_job.id).to.be.a('number');
-          expect(response.ci_server.id).to.equal(this.mock.serverID);
+          expect(response.ci_server.id).to.equal(mock.serverID);
           expect(response.name).to.equal(pipeline.name);
+
+          mock.rootJobID = response.root_job_ci_id;
           done();
         },
 
