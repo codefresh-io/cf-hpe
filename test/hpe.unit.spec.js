@@ -37,17 +37,18 @@ describe('Hpe Integration', function () {
         error => done(error));
   });
 
-  it('Create Pipeline', function (done) {
+  it.only('Create Pipeline', function (done) {
     const request = {
       name: Util.format('pipeline-%d', _.now()),
       ci_server: {
         type: 'ci_server',
-        id: 1001
+        id: 1003
       },
-      root_job_ci_id: "job-ci-id-01",
+      root_job_ci_id: "job-ci-id-02",
       jobs: [
         {
-          jobCiId: "job-ci-id-01"
+          jobCiId: "job-ci-id-02",
+          name: "job-ci-id-02"
         }
       ]
     };
