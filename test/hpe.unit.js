@@ -61,6 +61,16 @@ describe('Hpe', function () {
           expect(response.ci_server.id).to.equal(mock.serverID);
           expect(response.name).to.equal(pipeline.name);
 
+          const rootJobID = 'root-' + _.kebabCase(pipeline.name);
+          expect(response.root_job_ci_id).to.equal(rootJobID);
+          expect(response.jobs[0].jobCiId).to.equal(rootJobID);
+          expect(response.jobs[1].jobCiId).to.equal(rootJobID + '-clone-repository');
+          expect(response.jobs[2].jobCiId).to.equal(rootJobID + '-build-dockerfile');
+          expect(response.jobs[3].jobCiId).to.equal(rootJobID + '-unit-test-script');
+          expect(response.jobs[4].jobCiId).to.equal(rootJobID + '-push-docker-registry');
+          expect(response.jobs[5].jobCiId).to.equal(rootJobID + '-integration-test-script');
+          expect(response.jobs[6].jobCiId).to.equal(rootJobID + '-deploy-script');
+
           mock.rootJobID = response.root_job_ci_id;
           done();
         },
