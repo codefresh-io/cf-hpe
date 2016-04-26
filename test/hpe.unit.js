@@ -11,10 +11,11 @@ describe('Hpe', function () {
   const mock = {
     session: undefined,
     serverID: undefined,
+    serverInstanceID: undefined,
     rootJobID: undefined
   };
 
-  it('1-session', function (done) {
+  it('1-session', done => {
     Hpe
       .session()
       .subscribe(function(session) {
@@ -25,7 +26,7 @@ describe('Hpe', function () {
         error => done(error));
   });
 
-  it('2-create-server', function (done) {
+  it('2-create-server', done => {
     const server = {
       name: Util.format('Codefresh %d', _.now())
     };
@@ -75,9 +76,24 @@ describe('Hpe', function () {
         error => done(error));
   });
 
-  it('4-report-pipeline-build', function (done) {
+  it('4-start-pipeline-build', done => {
     const build = {
       serverID: mock.serverID,
+      jobID: mock.rootJobID
+    };
+
+    Hpe
+      .startPipelineBuild(mock.session, build)
+      .subscribe(response => {
+
+          done();
+        },
+        error => done(error));
+  });
+
+  it.skip('5-report-pipeline-build', done => {
+    const build = {
+      serverID: mock.serverInstanceID,
       jobID: mock.rootJobID,
       startTime: _.now(),
       duration: 1000,
