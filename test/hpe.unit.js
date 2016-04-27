@@ -113,10 +113,47 @@ describe('Hpe', function () {
         error => done(error));
   });
 
-  it('5-report-pipeline-finished', done => {
-    const buildName = Util.format('Build %d', _.now());
-    const buildId = _.kebabCase(buildName);
+  it('5-report-pipeline-clone-repository-finished', done => {
+    const stepStatus = {
+      stepId: 'clone-repository',
+      serverInstanceId: mock.serverInstanceId,
+      pipelineId: mock.pipelineId,
+      buildId: mock.rootJobBuildId,
+      startTime: mock.rootJobStartTime,
+      duration: _.now() - mock.rootJobStartTime,
+      status: 'finished',
+      result: 'success',
+    };
 
+    Hpe
+      .reportPipelineStepStatus(mock.session, stepStatus)
+      .subscribe(response => {
+          done();
+        },
+        error => done(error));
+  });
+
+  it('6-report-pipeline-clone-build-dockerfile-finished', done => {
+    const stepStatus = {
+      stepId: 'build-dockerfile',
+      serverInstanceId: mock.serverInstanceId,
+      pipelineId: mock.pipelineId,
+      buildId: mock.rootJobBuildId,
+      startTime: mock.rootJobStartTime,
+      duration: _.now() - mock.rootJobStartTime,
+      status: 'finished',
+      result: 'success',
+    };
+
+    Hpe
+      .reportPipelineStepStatus(mock.session, stepStatus)
+      .subscribe(response => {
+          done();
+        },
+        error => done(error));
+  });
+
+  it('7-report-pipeline-finished', done => {
     const stepStatus = {
       stepId: 'root',
       serverInstanceId: mock.serverInstanceId,
@@ -131,7 +168,6 @@ describe('Hpe', function () {
     Hpe
       .reportPipelineStepStatus(mock.session, stepStatus)
       .subscribe(response => {
-
           done();
         },
         error => done(error));
