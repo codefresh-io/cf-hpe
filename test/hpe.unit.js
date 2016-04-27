@@ -13,7 +13,9 @@ describe('Hpe', function () {
     session: undefined,
     serverId: undefined,
     serverInstanceId: undefined,
-    rootJobId: undefined
+    pipelineId: undefined,
+    rootJobBuildId: undefined,
+    rootJobStartTime: undefined
   };
 
   it('1-session', done => {
@@ -28,16 +30,20 @@ describe('Hpe', function () {
   });
 
   it('2-create-server', done => {
+    const serverName = Util.format('Codefresh %d', _.now());
+    const serverInstanceId = _.kebabCase(serverName);
+
     const server = {
-      name: Util.format('Codefresh %d', _.now())
+      instanceId: serverInstanceId,
+      name: serverName
     };
 
     Hpe
       .createServer(mock.session, server)
       .subscribe(function (response) {
           expect(response.id).to.be.a('number');
+          expect(response.instance_id).to.equal(server.instanceId);
           expect(response.name).to.equal(server.name);
-          expect(response.instance_id).to.equal(_.kebabCase(server.name));
           expect(response.server_type).to.equal('Codefresh');
 
           mock.serverId = response.id;
@@ -48,10 +54,12 @@ describe('Hpe', function () {
   });
 
   it('3-create-pipeline', function (done) {
-    const name = Util.format('Codefresh %d', _.now());
+    const pipelineName = Util.format('Pipeline %d', _.now());
+    const pipelineId = _.kebabCase(pipelineName);
+
     const pipeline = {
-      id:_.kebabCase(name),
-      name: name,
+      id: pipelineId,
+      name: pipelineName,
       serverId: mock.serverId
     };
 
@@ -63,9 +71,7 @@ describe('Hpe', function () {
           expect(response.ci_server.id).to.equal(mock.serverId);
           expect(response.name).to.equal(pipeline.name);
 
-          const pipelineid = _.kebabCase(pipeline.name);
-          const pipelineJobs = HpePipeline.jobs(pipelineid);
-
+          const pipelineJobs = HpePipeline.jobs(pipeline.id);
           expect(response.root_job_ci_id).to.equal(pipelineJobs[0].jobCiId);
           expect(response.jobs[0].jobCiId).to.equal(pipelineJobs[0].jobCiId);
           expect(response.jobs[1].jobCiId).to.equal(pipelineJobs[1].jobCiId);
@@ -75,20 +81,55 @@ describe('Hpe', function () {
           expect(response.jobs[5].jobCiId).to.equal(pipelineJobs[5].jobCiId);
           expect(response.jobs[6].jobCiId).to.equal(pipelineJobs[6].jobCiId);
 
-          mock.rootJobId = response.root_job_ci_id;
+          mock.pipelineId = pipeline.id;
           done();
         },
         error => done(error));
   });
 
-  it.skip('4-report-pipeline-start', done => {
+  it('4-report-pipeline-running', done => {
+    const buildName = Util.format('Build %d', _.now());
+    const buildId = _.kebabCase(buildName);
+
     const stepStatus = {
+      stepId: 'root',
       serverInstanceId: mock.serverInstanceId,
-      pipelineid: mock.rootJobId
+      pipelineId: mock.pipelineId,
+      buildId: buildId,
+      buildName: buildName,
+      startTime: _.now(),
+      duration: undefined,
+      status: 'running',
+      result: 'unavailable',
     };
 
     Hpe
-      .startPipelineBuild(mock.session, build)
+      .reportPipelineStepStatus(mock.session, stepStatus)
+      .subscribe(response => {
+          mock.rootJobBuildId = stepStatus.buildId;
+          mock.rootJobStartTime = stepStatus.startTime;
+          done();
+        },
+        error => done(error));
+  });
+
+  it('5-report-pipeline-finished', done => {
+    const buildName = Util.format('Build %d', _.now());
+    const buildId = _.kebabCase(buildName);
+
+    const stepStatus = {
+      stepId: 'root',
+      serverInstanceId: mock.serverInstanceId,
+      pipelineId: mock.pipelineId,
+      buildId: mock.rootJobBuildId,
+      startTime: mock.rootJobStartTime,
+      duration: _.now() - mock.rootJobStartTime,
+      status: 'finished',
+      result: 'success',
+    };
+
+    Hpe
+      .reportPipelineStepStatus(mock.session, stepStatus)
       .subscribe(response => {
 
           done();
