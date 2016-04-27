@@ -113,47 +113,55 @@ describe('Hpe', function () {
         error => done(error));
   });
 
+  function reportPipelineStepStatus(stepId, status, result, done) {
+    const stepStatus = {
+      stepId: stepId,
+      serverInstanceId: mock.serverInstanceId,
+      pipelineId: mock.pipelineId,
+      buildId: mock.rootJobBuildId,
+      startTime: mock.rootJobStartTime,
+      duration: _.now() - mock.rootJobStartTime,
+      status: status,
+      result: result,
+    };
+
+    Hpe
+      .reportPipelineStepStatus(mock.session, stepStatus)
+      .subscribe(response => {
+          done();
+        },
+        error => done(error));
+  }
+
   it('5-report-pipeline-clone-repository-finished', done => {
-    const stepStatus = {
-      stepId: 'clone-repository',
-      serverInstanceId: mock.serverInstanceId,
-      pipelineId: mock.pipelineId,
-      buildId: mock.rootJobBuildId,
-      startTime: mock.rootJobStartTime,
-      duration: _.now() - mock.rootJobStartTime,
-      status: 'finished',
-      result: 'success',
-    };
-
-    Hpe
-      .reportPipelineStepStatus(mock.session, stepStatus)
-      .subscribe(response => {
-          done();
-        },
-        error => done(error));
+    reportPipelineStepStatus('clone-repository', 'finished', 'success', done);
   });
 
-  it('6-report-pipeline-clone-build-dockerfile-finished', done => {
-    const stepStatus = {
-      stepId: 'build-dockerfile',
-      serverInstanceId: mock.serverInstanceId,
-      pipelineId: mock.pipelineId,
-      buildId: mock.rootJobBuildId,
-      startTime: mock.rootJobStartTime,
-      duration: _.now() - mock.rootJobStartTime,
-      status: 'finished',
-      result: 'success',
-    };
+  it('6-report-pipeline-build-dockerfile-finished', done => {
+    reportPipelineStepStatus('build-dockerfile', 'finished', 'success', done);
+   });
 
-    Hpe
-      .reportPipelineStepStatus(mock.session, stepStatus)
-      .subscribe(response => {
-          done();
-        },
-        error => done(error));
+  it('7-report-pipeline-unit-test-script-finished', done => {
+    reportPipelineStepStatus('unit-test-script', 'finished', 'success', done);
   });
 
-  it('7-report-pipeline-finished', done => {
+  it('8-report-pipeline-push-docker-registry-finished', done => {
+    reportPipelineStepStatus('push-docker-registry', 'finished', 'success', done);
+  });
+
+  it('9-report-pipeline-build-dockerfile-finished', done => {
+    reportPipelineStepStatus('unit-test-script', 'finished', 'success', done);
+  });
+
+  it('9-report-pipeline-integration-test-script-finished', done => {
+    reportPipelineStepStatus('integration-test-script', 'finished', 'success', done);
+  });
+
+  it('9-report-pipeline-deploy-script-finished', done => {
+    reportPipelineStepStatus('deploy-script', 'finished', 'success', done);
+  });
+
+  it('10-report-pipeline-finished', done => {
     const stepStatus = {
       stepId: 'root',
       serverInstanceId: mock.serverInstanceId,
