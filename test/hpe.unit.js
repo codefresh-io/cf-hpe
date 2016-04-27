@@ -11,9 +11,9 @@ describe('Hpe', function () {
   this.timeout(5000);
   const mock = {
     session: undefined,
-    serverID: undefined,
-    serverInstanceID: undefined,
-    rootJobID: undefined
+    serverid: undefined,
+    serverInstanceid: undefined,
+    rootJobid: undefined
   };
 
   it('1-session', done => {
@@ -40,17 +40,19 @@ describe('Hpe', function () {
           expect(response.instance_id).to.equal(_.kebabCase(server.name));
           expect(response.server_type).to.equal('Codefresh');
 
-          mock.serverID = response.id;
-          mock.serverInstanceID = response.instance_id;
+          mock.serverid = response.id;
+          mock.serverInstanceid = response.instance_id;
           done();
         },
         error => done(error));
   });
 
   it('3-create-pipeline', function (done) {
+    const name = Util.format('Codefresh %d', _.now());
     const pipeline = {
-      serverID: mock.serverID,
-      name: Util.format('Codefresh %d', _.now()),
+      id:_.kebabCase(name),
+      name: name,
+      serverId: mock.serverid
     };
 
     Hpe
@@ -58,11 +60,11 @@ describe('Hpe', function () {
       .subscribe(function(response) {
           expect(response.id).to.be.a('number');
           expect(response.root_job.id).to.be.a('number');
-          expect(response.ci_server.id).to.equal(mock.serverID);
+          expect(response.ci_server.id).to.equal(mock.serverid);
           expect(response.name).to.equal(pipeline.name);
 
-          const pipelineID = _.kebabCase(pipeline.name);
-          const pipelineJobs = HpePipeline.jobs(pipelineID);
+          const pipelineid = _.kebabCase(pipeline.name);
+          const pipelineJobs = HpePipeline.jobs(pipelineid);
 
           expect(response.root_job_ci_id).to.equal(pipelineJobs[0].jobCiId);
           expect(response.jobs[0].jobCiId).to.equal(pipelineJobs[0].jobCiId);
@@ -73,39 +75,20 @@ describe('Hpe', function () {
           expect(response.jobs[5].jobCiId).to.equal(pipelineJobs[5].jobCiId);
           expect(response.jobs[6].jobCiId).to.equal(pipelineJobs[6].jobCiId);
 
-          mock.rootJobID = response.root_job_ci_id;
+          mock.rootJobid = response.root_job_ci_id;
           done();
         },
         error => done(error));
   });
 
-  it.skip('4-start-pipeline-build', done => {
-    const build = {
-      serverID: mock.serverInstanceID,
-      jobID: mock.rootJobID
+  it.skip('4-report-pipeline-start', done => {
+    const stepStatus = {
+      serverInstanceid: mock.serverInstanceid,
+      pipelineid: mock.rootJobid
     };
 
     Hpe
       .startPipelineBuild(mock.session, build)
-      .subscribe(response => {
-
-          done();
-        },
-        error => done(error));
-  });
-
-  it.skip('5-report-pipeline-build', done => {
-    const build = {
-      serverID: mock.serverInstanceID,
-      jobID: mock.rootJobID,
-      startTime: _.now(),
-      duration: 1000,
-      status: 'finished',
-      result: 'success',
-    };
-
-    Hpe
-      .reportPipelineBuildStatus(mock.session, build)
       .subscribe(response => {
 
           done();
