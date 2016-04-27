@@ -11,9 +11,9 @@ describe('Hpe', function () {
   this.timeout(5000);
   const mock = {
     session: undefined,
-    serverid: undefined,
-    serverInstanceid: undefined,
-    rootJobid: undefined
+    serverId: undefined,
+    serverInstanceId: undefined,
+    rootJobId: undefined
   };
 
   it('1-session', done => {
@@ -40,8 +40,8 @@ describe('Hpe', function () {
           expect(response.instance_id).to.equal(_.kebabCase(server.name));
           expect(response.server_type).to.equal('Codefresh');
 
-          mock.serverid = response.id;
-          mock.serverInstanceid = response.instance_id;
+          mock.serverId = response.id;
+          mock.serverInstanceId = response.instance_id;
           done();
         },
         error => done(error));
@@ -52,7 +52,7 @@ describe('Hpe', function () {
     const pipeline = {
       id:_.kebabCase(name),
       name: name,
-      serverId: mock.serverid
+      serverId: mock.serverId
     };
 
     Hpe
@@ -60,7 +60,7 @@ describe('Hpe', function () {
       .subscribe(function(response) {
           expect(response.id).to.be.a('number');
           expect(response.root_job.id).to.be.a('number');
-          expect(response.ci_server.id).to.equal(mock.serverid);
+          expect(response.ci_server.id).to.equal(mock.serverId);
           expect(response.name).to.equal(pipeline.name);
 
           const pipelineid = _.kebabCase(pipeline.name);
@@ -75,7 +75,7 @@ describe('Hpe', function () {
           expect(response.jobs[5].jobCiId).to.equal(pipelineJobs[5].jobCiId);
           expect(response.jobs[6].jobCiId).to.equal(pipelineJobs[6].jobCiId);
 
-          mock.rootJobid = response.root_job_ci_id;
+          mock.rootJobId = response.root_job_ci_id;
           done();
         },
         error => done(error));
@@ -83,8 +83,8 @@ describe('Hpe', function () {
 
   it.skip('4-report-pipeline-start', done => {
     const stepStatus = {
-      serverInstanceid: mock.serverInstanceid,
-      pipelineid: mock.rootJobid
+      serverInstanceId: mock.serverInstanceId,
+      pipelineid: mock.rootJobId
     };
 
     Hpe
