@@ -146,19 +146,15 @@ describe('Hpe', function () {
   });
 
   it('8-report-pipeline-push-docker-registry-finished', done => {
-    reportPipelineStepStatus('push-docker-registry', 'finished', 'success', done);
-  });
-
-  it('9-report-pipeline-build-dockerfile-finished', done => {
-    reportPipelineStepStatus('unit-test-script', 'finished', 'success', done);
+    reportPipelineStepStatus('push-docker-registry', 'finished', 'failure', done);
   });
 
   it('9-report-pipeline-integration-test-script-finished', done => {
-    reportPipelineStepStatus('integration-test-script', 'finished', 'success', done);
+    reportPipelineStepStatus('integration-test-script', 'finished', 'failure', done);
   });
 
   it('9-report-pipeline-deploy-script-finished', done => {
-    reportPipelineStepStatus('deploy-script', 'finished', 'success', done);
+    reportPipelineStepStatus('deploy-script', 'finished', 'failure', done);
   });
 
   it('10-report-pipeline-finished', done => {
@@ -170,7 +166,7 @@ describe('Hpe', function () {
       startTime: mock.rootJobStartTime,
       duration: _.now() - mock.rootJobStartTime,
       status: 'finished',
-      result: 'success',
+      result: 'failure',
     };
 
     Hpe
