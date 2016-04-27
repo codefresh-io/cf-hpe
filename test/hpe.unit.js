@@ -76,9 +76,9 @@ describe('Hpe', function () {
         error => done(error));
   });
 
-  it('4-start-pipeline-build', done => {
+  it.skip('4-start-pipeline-build', done => {
     const build = {
-      serverID: mock.serverID,
+      serverID: mock.serverInstanceID,
       jobID: mock.rootJobID
     };
 
