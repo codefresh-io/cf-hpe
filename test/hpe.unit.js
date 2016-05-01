@@ -7,7 +7,7 @@ import HpePipeline from '../lib/hpe-pipeline';
 
 const expect = Chai.expect;
 
-describe('Hpe', function () {
+describe('Hpe', function hpe() {
   this.timeout(5000);
   const mock = {
     session: undefined,
@@ -15,13 +15,14 @@ describe('Hpe', function () {
     serverInstanceId: undefined,
     pipelineId: undefined,
     rootJobBuildId: undefined,
-    rootJobStartTime: undefined
+    rootJobStartTime: undefined,
   };
 
   it('1-session', done => {
     Hpe
       .session()
-      .subscribe(function(session) {
+      .subscribe(
+        session => {
           expect(session).to.have.property('request');
           mock.session = session;
           done();
@@ -35,12 +36,13 @@ describe('Hpe', function () {
 
     const server = {
       instanceId: serverInstanceId,
-      name: serverName
+      name: serverName,
     };
 
     Hpe
       .createServer(mock.session, server)
-      .subscribe(function (response) {
+      .subscribe(
+        response => {
           expect(response.id).to.be.a('number');
           expect(response.instance_id).to.equal(server.instanceId);
           expect(response.name).to.equal(server.name);
@@ -53,19 +55,20 @@ describe('Hpe', function () {
         error => done(error));
   });
 
-  it('3-create-pipeline', function (done) {
+  it('3-create-pipeline', done => {
     const pipelineName = Util.format('Pipeline %d', _.now());
     const pipelineId = _.kebabCase(pipelineName);
 
     const pipeline = {
       id: pipelineId,
       name: pipelineName,
-      serverId: mock.serverId
+      serverId: mock.serverId,
     };
 
     Hpe
       .createPipeline(mock.session, pipeline)
-      .subscribe(function(response) {
+      .subscribe(
+        response => {
           expect(response.id).to.be.a('number');
           expect(response.root_job.id).to.be.a('number');
           expect(response.ci_server.id).to.equal(mock.serverId);
@@ -95,8 +98,8 @@ describe('Hpe', function () {
       stepId: 'root',
       serverInstanceId: mock.serverInstanceId,
       pipelineId: mock.pipelineId,
-      buildId: buildId,
-      buildName: buildName,
+      buildId,
+      buildName,
       startTime: _.now(),
       duration: undefined,
       status: 'running',
@@ -105,7 +108,8 @@ describe('Hpe', function () {
 
     Hpe
       .reportPipelineStepStatus(mock.session, stepStatus)
-      .subscribe(response => {
+      .subscribe(
+        () => {
           mock.rootJobBuildId = stepStatus.buildId;
           mock.rootJobStartTime = stepStatus.startTime;
           done();
@@ -115,21 +119,20 @@ describe('Hpe', function () {
 
   function reportPipelineStepStatus(stepId, status, result, done) {
     const stepStatus = {
-      stepId: stepId,
+      stepId,
       serverInstanceId: mock.serverInstanceId,
       pipelineId: mock.pipelineId,
       buildId: mock.rootJobBuildId,
       startTime: mock.rootJobStartTime,
       duration: _.now() - mock.rootJobStartTime,
-      status: status,
-      result: result,
+      status,
+      result,
     };
 
     Hpe
       .reportPipelineStepStatus(mock.session, stepStatus)
-      .subscribe(response => {
-          done();
-        },
+      .subscribe(
+        () => done(),
         error => done(error));
   }
 
@@ -139,7 +142,7 @@ describe('Hpe', function () {
 
   it('6-report-pipeline-build-dockerfile-finished', done => {
     reportPipelineStepStatus('build-dockerfile', 'finished', 'success', done);
-   });
+  });
 
   it('7-report-pipeline-unit-test-script-finished', done => {
     reportPipelineStepStatus('unit-test-script', 'finished', 'success', done);
@@ -171,9 +174,7 @@ describe('Hpe', function () {
 
     Hpe
       .reportPipelineStepStatus(mock.session, stepStatus)
-      .subscribe(response => {
-          done();
-        },
+      .subscribe(() => done(),
         error => done(error));
   });
 });
