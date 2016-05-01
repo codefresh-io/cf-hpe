@@ -149,18 +149,31 @@ describe('Hpe', function hpe() {
   });
 
   it('8-report-pipeline-push-docker-registry-finished', done => {
-    reportPipelineStepStatus('push-docker-registry', 'finished', 'failure', done);
+    reportPipelineStepStatus('push-docker-registry', 'finished', 'success', done);
   });
 
   it('9-report-pipeline-integration-test-script-finished', done => {
-    reportPipelineStepStatus('integration-test-script', 'finished', 'failure', done);
+    reportPipelineStepStatus('integration-test-script', 'finished', 'success', done);
   });
 
-  it('9-report-pipeline-deploy-script-finished', done => {
-    reportPipelineStepStatus('deploy-script', 'finished', 'failure', done);
+  it('10-report-pipeline-deploy-script-finished', done => {
+    reportPipelineStepStatus('deploy-script', 'finished', 'success', done);
   });
 
-  it('10-report-pipeline-finished', done => {
+  it('11-test-result', done => {
+    const testResult = {
+      stepId: 'root',
+      serverInstanceId: mock.serverInstanceId,
+      pipelineId: mock.pipelineId,
+    };
+
+    Hpe
+      .reportPipelineTestResults(mock.session, testResult)
+      .subscribe(() => done(),
+        error => done(error));
+  });
+
+  it('12-report-pipeline-finished', done => {
     const stepStatus = {
       stepId: 'root',
       serverInstanceId: mock.serverInstanceId,
@@ -169,7 +182,7 @@ describe('Hpe', function hpe() {
       startTime: mock.rootJobStartTime,
       duration: _.now() - mock.rootJobStartTime,
       status: 'finished',
-      result: 'failure',
+      result: 'success',
     };
 
     Hpe
