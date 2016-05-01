@@ -1,5 +1,4 @@
 'use strict';
-require('dotenv').config();
 import _ from 'lodash';
 import Util from 'util';
 import Chai from 'chai';
