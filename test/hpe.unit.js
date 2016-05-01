@@ -1,4 +1,5 @@
 'use strict';
+require('dotenv').config();
 import _ from 'lodash';
 import Util from 'util';
 import Chai from 'chai';
@@ -8,7 +9,7 @@ import HpePipeline from '../lib/hpe-pipeline';
 const expect = Chai.expect;
 
 describe('Hpe', function hpe() {
-  this.timeout(5000);
+  this.timeout(15000);
   const mock = {
     session: undefined,
     serverId: undefined,
