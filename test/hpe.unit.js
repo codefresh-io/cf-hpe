@@ -162,9 +162,10 @@ describe('Hpe', function hpe() {
 
   it('11-test-result', done => {
     const testResult = {
-      stepId: 'root',
+      stepId: 'unit-test-script',
       serverInstanceId: mock.serverInstanceId,
       pipelineId: mock.pipelineId,
+      buildId: mock.rootJobBuildId,
     };
 
     Hpe
