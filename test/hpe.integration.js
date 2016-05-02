@@ -1,9 +1,6 @@
 /* eslint-env mocha */
 /* eslint-disable func-names */
 /* eslint-disable prefer-arrow-callback */
-
-require('dotenv').config();
-
 import _ from 'lodash';
 import Util from 'util';
 import { expect } from 'chai';
