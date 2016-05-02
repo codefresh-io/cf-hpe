@@ -3,9 +3,7 @@ import eslint from 'gulp-eslint';
 import mocha from 'gulp-mocha';
 import processEnv from 'gulp-process-env';
 
-gulp.task('default', ['lint', 'test'], () => {
-
-});
+gulp.task('default', ['lint', 'test']);
 
 gulp.task('test', ['unit-test', 'integration-test']);
 
