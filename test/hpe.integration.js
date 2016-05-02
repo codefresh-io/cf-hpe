@@ -5,7 +5,7 @@ import { expect } from 'chai';
 import Hpe from '../lib/hpe';
 import HpePipeline from '../lib/hpe-pipeline';
 
-describe('Hpe', function hpe() {
+describe('Hpe Integration', function hpe() {
   this.timeout(15000);
   const mock = {
     session: undefined,
@@ -16,7 +16,7 @@ describe('Hpe', function hpe() {
     rootJobStartTime: undefined,
   };
 
-  it('1-session', done => {
+  it('Should open a session', done => {
     Hpe
       .session()
       .subscribe(
@@ -28,7 +28,7 @@ describe('Hpe', function hpe() {
         error => done(error));
   });
 
-  it('2-create-server', done => {
+  it('Should create a CI server', done => {
     const serverName = Util.format('Codefresh %d', _.now());
     const serverInstanceId = _.kebabCase(serverName);
 
@@ -53,7 +53,7 @@ describe('Hpe', function hpe() {
         error => done(error));
   });
 
-  it('3-create-pipeline', done => {
+  it('Should create a CI server pipeline ', done => {
     const pipelineName = Util.format('Pipeline %d', _.now());
     const pipelineId = _.kebabCase(pipelineName);
 
@@ -88,7 +88,7 @@ describe('Hpe', function hpe() {
         error => done(error));
   });
 
-  it('4-report-pipeline-running', done => {
+  it('Should report pipeline status as "running"', done => {
     const buildName = Util.format('Build %d', _.now());
     const buildId = _.kebabCase(buildName);
 
@@ -134,31 +134,31 @@ describe('Hpe', function hpe() {
         error => done(error));
   }
 
-  it('5-report-pipeline-clone-repository-finished', done => {
+  it('Should report pipeline step "clone-repository" status as "finished"', done => {
     reportPipelineStepStatus('clone-repository', 'finished', 'success', done);
   });
 
-  it('6-report-pipeline-build-dockerfile-finished', done => {
+  it('Should report pipeline step "build-dockerfile" status as "finished"', done => {
     reportPipelineStepStatus('build-dockerfile', 'finished', 'success', done);
   });
 
-  it('7-report-pipeline-unit-test-script-finished', done => {
+  it('Should report pipeline step "unit-test-script" status as "finished"', done => {
     reportPipelineStepStatus('unit-test-script', 'finished', 'success', done);
   });
 
-  it('8-report-pipeline-push-docker-registry-finished', done => {
+  it('Should report pipeline step "push-docker-registry" status as "finished"', done => {
     reportPipelineStepStatus('push-docker-registry', 'finished', 'success', done);
   });
 
-  it('9-report-pipeline-integration-test-script-finished', done => {
+  it('Should report pipeline step "integration-test-script" status as "finished"', done => {
     reportPipelineStepStatus('integration-test-script', 'finished', 'success', done);
   });
 
-  it('10-report-pipeline-deploy-script-finished', done => {
+  it('Should report pipeline step "deploy-script" status as "finished"', done => {
     reportPipelineStepStatus('deploy-script', 'finished', 'success', done);
   });
 
-  it('11-test-result', done => {
+  it('Should publish test results', done => {
     const testResult = {
       stepId: 'unit-test-script',
       serverInstanceId: mock.serverInstanceId,
@@ -172,7 +172,7 @@ describe('Hpe', function hpe() {
         error => done(error));
   });
 
-  it('12-report-pipeline-finished', done => {
+  it('Should report pipeline status as "finished"', done => {
     const stepStatus = {
       stepId: 'root',
       serverInstanceId: mock.serverInstanceId,
