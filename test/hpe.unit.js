@@ -1,11 +1,9 @@
-'use strict';
+/* eslint-env mocha */
 import _ from 'lodash';
 import Util from 'util';
-import Chai from 'chai';
+import { expect } from 'chai';
 import Hpe from '../lib/hpe';
 import HpePipeline from '../lib/hpe-pipeline';
-
-const expect = Chai.expect;
 
 describe('Hpe', function hpe() {
   this.timeout(15000);
