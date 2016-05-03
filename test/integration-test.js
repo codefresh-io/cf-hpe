@@ -160,7 +160,7 @@ describe('Hpe Integration', function () {
   });
 
   it('Should report pipeline step "security-validation" status as "finished"', function (done) {
-    reportPipelineStepStatus('security-validation', 'finished', 'success', done);
+    reportPipelineStepStatus('security-validation', 'finished', 'failed', done);
   });
 
   it('Should report pipeline step "deploy-script" status as "finished"', function (done) {
