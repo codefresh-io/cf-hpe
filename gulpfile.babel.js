@@ -3,9 +3,9 @@ import eslint from 'gulp-eslint';
 import mocha from 'gulp-mocha';
 import processEnv from 'gulp-process-env';
 
-gulp.task('default', ['lint', 'test']);
+gulp.task('default', ['test']);
 
-gulp.task('test', ['unit-test', 'integration-test']);
+gulp.task('test', ['unit-test']);
 
 gulp.task('lint', () =>
   gulp.src(['**/*.js', '!node_modules/**'])
@@ -13,11 +13,11 @@ gulp.task('lint', () =>
     .pipe(eslint.format())
     .pipe(eslint.failAfterError()));
 
-gulp.task('unit-test', () =>
+gulp.task('unit-test', ['lint'], () =>
   gulp.src(['test/unit-*.js'], { read: false })
     .pipe(mocha({ reporter: 'spec' })));
 
-gulp.task('integration-test', () =>
+gulp.task('integration-test', ['unit-test'], () =>
   gulp.src(['test/integration-*.js'], { read: false })
     .pipe(processEnv({
       HPE_SERVER_URL: 'http://146.148.93.246:8080',
@@ -28,3 +28,5 @@ gulp.task('integration-test', () =>
     }))
     .pipe(mocha({ reporter: 'spec' })));
 
+gulp.task('release', () => {
+});
