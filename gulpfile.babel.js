@@ -6,13 +6,13 @@ import bump from 'gulp-bump';
 import processEnv from 'gulp-process-env';
 
 gulp.task('lint', () =>
-  gulp.src(['**/*.js', '!node_modules/**'])
+  gulp.src(['src/**/*.js', '!node_modules/**'])
     .pipe(eslint())
     .pipe(eslint.format())
     .pipe(eslint.failAfterError()));
 
 gulp.task('build', ['lint'], () =>
-  gulp.src(['**/*.js', '!node_modules/**'])
+  gulp.src(['src/**/*.js'])
     .pipe(babel())
     .pipe(gulp.dest('build')));
 
