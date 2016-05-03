@@ -167,12 +167,98 @@ describe('Hpe Integration', function () {
     reportPipelineStepStatus('deploy-script', 'finished', 'success', done);
   });
 
-  it('Should publish test results', function (done) {
+  it('Should publish test success results #1', function (done) {
     const testResult = {
       stepId: 'unit-test-script',
       serverInstanceId: mock.serverInstanceId,
       pipelineId: mock.pipelineId,
       buildId: mock.rootJobBuildId,
+      testRuns: [
+        {
+          testName: 'Should pass unit test #1',
+          started: _.now(),
+          duration: 1000,
+          status: 'Passed',
+          package: 'cf-hpe',
+          module: 'test-1',
+          class: 'hpe',
+        },
+      ],
+    };
+
+    Hpe
+      .reportPipelineTestResults(mock.session, testResult)
+      .subscribe(() => done(),
+        error => done(error));
+  });
+
+  it('Should publish test failed results #2', function (done) {
+    const testResult = {
+      stepId: 'unit-test-script',
+      serverInstanceId: mock.serverInstanceId,
+      pipelineId: mock.pipelineId,
+      buildId: mock.rootJobBuildId,
+      testRuns: [
+        {
+          testName: 'Should pass unit test #2',
+          started: _.now(),
+          duration: 1000,
+          status: 'Failed',
+          package: 'cf-hpe',
+          module: 'test-1',
+          class: 'hpe',
+        },
+      ],
+    };
+
+    Hpe
+      .reportPipelineTestResults(mock.session, testResult)
+      .subscribe(() => done(),
+        error => done(error));
+  });
+
+  it('Should publish test success results #3', function (done) {
+    const testResult = {
+      stepId: 'integration-test-script',
+      serverInstanceId: mock.serverInstanceId,
+      pipelineId: mock.pipelineId,
+      buildId: mock.rootJobBuildId,
+      testRuns: [
+        {
+          testName: 'Should pass integration test #1',
+          started: _.now(),
+          duration: 1000,
+          status: 'Passed',
+          package: 'cf-hpe',
+          module: 'test-2',
+          class: 'hpe',
+        },
+      ],
+    };
+
+    Hpe
+      .reportPipelineTestResults(mock.session, testResult)
+      .subscribe(() => done(),
+        error => done(error));
+  });
+
+  it('Should publish test failed results #4', function (done) {
+    const testResult = {
+      stepId: 'integration-test-script',
+      serverInstanceId: mock.serverInstanceId,
+      pipelineId: mock.pipelineId,
+      buildId: mock.rootJobBuildId,
+      testRuns: [
+        {
+          testName: 'Should pass integration test #2',
+          started: _.now(),
+          duration: 1000,
+          status: 'Failed',
+          package: 'cf-hpe',
+          module: 'test-2',
+          class: 'hpe',
+        },
+      ],
     };
 
     Hpe
