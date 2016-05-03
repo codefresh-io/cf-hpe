@@ -5,5 +5,5 @@ RUN mkdir -p ${workdir}
 WORKDIR ${workdir}
 
 COPY package.json ${workdir}
-RUN npm install --silent
+RUN npm install
 COPY . ${workdir}
