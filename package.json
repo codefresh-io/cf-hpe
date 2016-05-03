@@ -1,15 +1,13 @@
 {
   "name": "cf-hpe",
   "version": "1.0.0",
-  "main": "index.js",
   "private": true,
   "scripts": {
     "lint": "eslint .",
-    "test": "mocha --compilers js:babel-register"
+    "integration-test": "gulp integration-test"
   },
   "dependencies": {
     "12factor-config": "^1.1.0",
-    "install": "^0.6.1",
     "lodash": "^4.11.1",
     "mongoose": "^4.4.12",
     "node-uuid": "^1.4.7",

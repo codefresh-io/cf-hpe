@@ -1,12 +1,9 @@
 FROM node
 
-COPY package.json ./
+ENV workdir /usr/src/app
+RUN mkdir -p ${workdir}
+WORKDIR ${workdir}
+
+COPY package.json ${workdir}
 RUN npm install
-
-COPY .babelrc ./
-COPY index.js ./
-COPY config.json ./
-COPY lib/ ./lib/
-COPY test/ ./test/
-
-ENTRYPOINT ["npm", "test"]
+COPY . ${workdir}
