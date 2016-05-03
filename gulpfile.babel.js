@@ -2,6 +2,7 @@ import gulp from 'gulp';
 import eslint from 'gulp-eslint';
 import babel from 'gulp-babel';
 import mocha from 'gulp-mocha';
+import bump from 'gulp-bump';
 import processEnv from 'gulp-process-env';
 
 gulp.task('lint', () =>
@@ -31,4 +32,7 @@ gulp.task('integration-test', ['test'], () =>
     .pipe(mocha({ reporter: 'spec' })));
 
 gulp.task('release', () => {
+  gulp.src(['./package.json'])
+    .pipe(bump())
+    .pipe(gulp.dest('./'));
 });
