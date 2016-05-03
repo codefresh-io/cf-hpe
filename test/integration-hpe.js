@@ -85,6 +85,7 @@ describe('Hpe Integration', function () {
           expect(response.jobs[4].jobCiId).to.equal(pipelineJobs[4].jobCiId);
           expect(response.jobs[5].jobCiId).to.equal(pipelineJobs[5].jobCiId);
           expect(response.jobs[6].jobCiId).to.equal(pipelineJobs[6].jobCiId);
+          expect(response.jobs[7].jobCiId).to.equal(pipelineJobs[7].jobCiId);
 
           mock.pipelineId = pipeline.id;
           done();
@@ -156,6 +157,10 @@ describe('Hpe Integration', function () {
 
   it('Should report pipeline step "integration-test-script" status as "finished"', function (done) {
     reportPipelineStepStatus('integration-test-script', 'finished', 'success', done);
+  });
+
+  it('Should report pipeline step "security-validation" status as "finished"', function (done) {
+    reportPipelineStepStatus('security-validation', 'finished', 'success', done);
   });
 
   it('Should report pipeline step "deploy-script" status as "finished"', function (done) {
