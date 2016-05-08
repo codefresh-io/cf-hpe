@@ -5,6 +5,7 @@ import _ from 'lodash';
 import Util from 'util';
 import { expect } from 'chai';
 import { Hpe, HpePipeline } from 'cf-hpe';
+import config from './config';
 
 describe('Hpe Integration', function () {
   this.slow(5000);
@@ -21,7 +22,13 @@ describe('Hpe Integration', function () {
 
   it('Should open a session', function (done) {
     Hpe
-      .session()
+      .createSession({
+        user: config.HPE_USER,
+        password: config.HPE_PASSWORD,
+        serverUrl: config.HPE_SERVER_URL,
+        sharedSpace: config.HPE_SHARED_SPACE,
+        workspace: config.HPE_WORKSPACE,
+      })
       .subscribe(
         session => {
           expect(session).to.have.property('request');
