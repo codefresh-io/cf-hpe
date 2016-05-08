@@ -37,7 +37,7 @@ gulp.task('integration-test', ['test'], () =>
     .pipe(processEnv({
       HPE_SERVER_URL: 'http://146.148.93.246:8080',
       HPE_USER: 'cf_p32zor9g9gl2zbp0rp663oex0',
-      HPE_PASSWORD: '==211cb1cdb045df37I',
+      HPE_PASSWORD: '=211cb1cdb045df37I',
       HPE_SHARED_SPACE: '1001',
       HPE_WORKSPACE: '1002',
     }))
