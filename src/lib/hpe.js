@@ -35,13 +35,15 @@ function createSession(sessionConfig) {
           .find(cookie => cookie.key === 'HPSSO_COOKIE_CSRF')
           .value;
 
+      const request = authRequest.defaults({
+        headers: {
+          'HPSSO-HEADER-CSRF': csrfToken,
+        },
+      });
+
       return {
+        request,
         ...sessionConfig,
-        request: authRequest.defaults({
-          headers: {
-            'HPSSO-HEADER-CSRF': csrfToken,
-          },
-        }),
       };
     });
 }
