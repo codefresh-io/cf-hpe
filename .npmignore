@@ -1,0 +1,9 @@
+src
+test
+.gitignore
+.npmignore
+.babelrc
+.eslintrc
+.eslintignore
+.editorconfig
+gulpfile.babel.js
