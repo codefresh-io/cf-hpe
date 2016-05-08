@@ -2,10 +2,10 @@ import _ from 'lodash';
 import Util from 'util';
 import Xml2js from 'xml2js';
 import Request from 'request';
-import HpeError from './hpe-error';
-import HpePipeline from './hpe-pipeline';
-import RequestRx from './request-rx';
-import config from '../config';
+import HpeError from 'lib/hpe-error';
+import HpePipeline from 'lib/hpe-pipeline';
+import RequestRx from 'lib/request-rx';
+import config from 'cf-hpe/config';
 
 function workspaceUri() {
   return Util.format(

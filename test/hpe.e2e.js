@@ -4,8 +4,7 @@
 import _ from 'lodash';
 import Util from 'util';
 import { expect } from 'chai';
-import Hpe from '../lib/hpe';
-import HpePipeline from '../lib/hpe-pipeline';
+import { Hpe, HpePipeline } from 'cf-hpe';
 
 describe('Hpe Integration', function () {
   this.slow(5000);

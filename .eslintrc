@@ -1,3 +1,16 @@
 {
-  "extends": ["airbnb-base"]
+  "extends": "airbnb-base",
+  "parserOptions": {
+    "ecmaFeatures": {
+      "experimentalObjectRestSpread": true
+    }
+  },
+  "settings": {
+    "import/resolver": {
+      "babel-module-alias": {}
+    }
+  },
+  "rules": {
+    "arrow-body-style": ["off"]
+  }
 }
