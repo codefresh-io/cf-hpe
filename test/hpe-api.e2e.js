@@ -4,14 +4,14 @@
 import _ from 'lodash';
 import Util from 'util';
 import { expect } from 'chai';
-import { Hpe, HpePipeline } from 'cf-hpe';
+import { HpeApi, HpePipeline } from 'cf-hpe';
 import config from './config';
 
-describe('Hpe Integration', function () {
+describe('HpeApi Integration', function () {
   this.slow(5000);
   this.timeout(15000);
 
-  const mock = {
+  const testSuitState = {
     session: undefined,
     serverId: undefined,
     serverInstanceId: undefined,
@@ -21,7 +21,7 @@ describe('Hpe Integration', function () {
   };
 
   it('Should open a session', function (done) {
-    Hpe
+    HpeApi
       .createSession({
         user: config.HPE_USER,
         password: config.HPE_PASSWORD,
@@ -32,7 +32,7 @@ describe('Hpe Integration', function () {
       .subscribe(
         session => {
           expect(session).to.have.property('request');
-          mock.session = session;
+          testSuitState.session = session;
           done();
         },
         error => done(error));
@@ -47,8 +47,8 @@ describe('Hpe Integration', function () {
       name: serverName,
     };
 
-    Hpe
-      .createServer(mock.session, server)
+    testSuitState.session
+      .createServer(server)
       .subscribe(
         response => {
           expect(response.id).to.be.a('number');
@@ -56,8 +56,8 @@ describe('Hpe Integration', function () {
           expect(response.name).to.equal(server.name);
           expect(response.server_type).to.equal('Codefresh');
 
-          mock.serverId = response.id;
-          mock.serverInstanceId = response.instance_id;
+          testSuitState.serverId = response.id;
+          testSuitState.serverInstanceId = response.instance_id;
           done();
         },
         error => done(error));
@@ -70,16 +70,16 @@ describe('Hpe Integration', function () {
     const pipeline = {
       id: pipelineId,
       name: pipelineName,
-      serverId: mock.serverId,
+      serverId: testSuitState.serverId,
     };
 
-    Hpe
-      .createPipeline(mock.session, pipeline)
+    testSuitState.session
+      .createPipeline(pipeline)
       .subscribe(
         response => {
           expect(response.id).to.be.a('number');
           expect(response.root_job.id).to.be.a('number');
-          expect(response.ci_server.id).to.equal(mock.serverId);
+          expect(response.ci_server.id).to.equal(testSuitState.serverId);
           expect(response.name).to.equal(pipeline.name);
 
           const pipelineJobs = HpePipeline.jobs(pipeline.id);
@@ -93,7 +93,7 @@ describe('Hpe Integration', function () {
           expect(response.jobs[6].jobCiId).to.equal(pipelineJobs[6].jobCiId);
           expect(response.jobs[7].jobCiId).to.equal(pipelineJobs[7].jobCiId);
 
-          mock.pipelineId = pipeline.id;
+          testSuitState.pipelineId = pipeline.id;
           done();
         },
         error => done(error));
@@ -105,8 +105,8 @@ describe('Hpe Integration', function () {
 
     const stepStatus = {
       stepId: 'root',
-      serverInstanceId: mock.serverInstanceId,
-      pipelineId: mock.pipelineId,
+      serverInstanceId: testSuitState.serverInstanceId,
+      pipelineId: testSuitState.pipelineId,
       buildId,
       buildName,
       startTime: _.now(),
@@ -115,12 +115,12 @@ describe('Hpe Integration', function () {
       result: 'unavailable',
     };
 
-    Hpe
-      .reportPipelineStepStatus(mock.session, stepStatus)
+    testSuitState.session
+      .reportPipelineStepStatus(stepStatus)
       .subscribe(
         () => {
-          mock.rootJobBuildId = stepStatus.buildId;
-          mock.rootJobStartTime = stepStatus.startTime;
+          testSuitState.rootJobBuildId = stepStatus.buildId;
+          testSuitState.rootJobStartTime = stepStatus.startTime;
           done();
         },
         error => done(error));
@@ -129,17 +129,17 @@ describe('Hpe Integration', function () {
   function reportPipelineStepStatus(stepId, status, result, done) {
     const stepStatus = {
       stepId,
-      serverInstanceId: mock.serverInstanceId,
-      pipelineId: mock.pipelineId,
-      buildId: mock.rootJobBuildId,
-      startTime: mock.rootJobStartTime,
-      duration: _.now() - mock.rootJobStartTime,
+      serverInstanceId: testSuitState.serverInstanceId,
+      pipelineId: testSuitState.pipelineId,
+      buildId: testSuitState.rootJobBuildId,
+      startTime: testSuitState.rootJobStartTime,
+      duration: _.now() - testSuitState.rootJobStartTime,
       status,
       result,
     };
 
-    Hpe
-      .reportPipelineStepStatus(mock.session, stepStatus)
+    testSuitState.session
+      .reportPipelineStepStatus(stepStatus)
       .subscribe(
         () => done(),
         error => done(error));
@@ -176,9 +176,9 @@ describe('Hpe Integration', function () {
   it('Should publish test success results #1', function (done) {
     const testResult = {
       stepId: 'unit-test-script',
-      serverInstanceId: mock.serverInstanceId,
-      pipelineId: mock.pipelineId,
-      buildId: mock.rootJobBuildId,
+      serverInstanceId: testSuitState.serverInstanceId,
+      pipelineId: testSuitState.pipelineId,
+      buildId: testSuitState.rootJobBuildId,
       testRuns: [
         {
           testName: 'Should pass unit test #1',
@@ -192,8 +192,8 @@ describe('Hpe Integration', function () {
       ],
     };
 
-    Hpe
-      .reportPipelineTestResults(mock.session, testResult)
+    testSuitState.session
+      .reportPipelineTestResults(testResult)
       .subscribe(() => done(),
         error => done(error));
   });
@@ -201,9 +201,9 @@ describe('Hpe Integration', function () {
   it('Should publish test failed results #2', function (done) {
     const testResult = {
       stepId: 'unit-test-script',
-      serverInstanceId: mock.serverInstanceId,
-      pipelineId: mock.pipelineId,
-      buildId: mock.rootJobBuildId,
+      serverInstanceId: testSuitState.serverInstanceId,
+      pipelineId: testSuitState.pipelineId,
+      buildId: testSuitState.rootJobBuildId,
       testRuns: [
         {
           testName: 'Should pass unit test #2',
@@ -217,8 +217,8 @@ describe('Hpe Integration', function () {
       ],
     };
 
-    Hpe
-      .reportPipelineTestResults(mock.session, testResult)
+    testSuitState.session
+      .reportPipelineTestResults(testResult)
       .subscribe(() => done(),
         error => done(error));
   });
@@ -226,9 +226,9 @@ describe('Hpe Integration', function () {
   it('Should publish test success results #3', function (done) {
     const testResult = {
       stepId: 'integration-test-script',
-      serverInstanceId: mock.serverInstanceId,
-      pipelineId: mock.pipelineId,
-      buildId: mock.rootJobBuildId,
+      serverInstanceId: testSuitState.serverInstanceId,
+      pipelineId: testSuitState.pipelineId,
+      buildId: testSuitState.rootJobBuildId,
       testRuns: [
         {
           testName: 'Should pass integration test #1',
@@ -242,8 +242,8 @@ describe('Hpe Integration', function () {
       ],
     };
 
-    Hpe
-      .reportPipelineTestResults(mock.session, testResult)
+    testSuitState.session
+      .reportPipelineTestResults(testResult)
       .subscribe(() => done(),
         error => done(error));
   });
@@ -251,9 +251,9 @@ describe('Hpe Integration', function () {
   it('Should publish test failed results #4', function (done) {
     const testResult = {
       stepId: 'integration-test-script',
-      serverInstanceId: mock.serverInstanceId,
-      pipelineId: mock.pipelineId,
-      buildId: mock.rootJobBuildId,
+      serverInstanceId: testSuitState.serverInstanceId,
+      pipelineId: testSuitState.pipelineId,
+      buildId: testSuitState.rootJobBuildId,
       testRuns: [
         {
           testName: 'Should pass integration test #2',
@@ -267,8 +267,8 @@ describe('Hpe Integration', function () {
       ],
     };
 
-    Hpe
-      .reportPipelineTestResults(mock.session, testResult)
+    testSuitState.session
+      .reportPipelineTestResults(testResult)
       .subscribe(() => done(),
         error => done(error));
   });
@@ -276,17 +276,17 @@ describe('Hpe Integration', function () {
   it('Should report pipeline status as "finished"', function (done) {
     const stepStatus = {
       stepId: 'root',
-      serverInstanceId: mock.serverInstanceId,
-      pipelineId: mock.pipelineId,
-      buildId: mock.rootJobBuildId,
-      startTime: mock.rootJobStartTime,
-      duration: _.now() - mock.rootJobStartTime,
+      serverInstanceId: testSuitState.serverInstanceId,
+      pipelineId: testSuitState.pipelineId,
+      buildId: testSuitState.rootJobBuildId,
+      startTime: testSuitState.rootJobStartTime,
+      duration: _.now() - testSuitState.rootJobStartTime,
       status: 'finished',
       result: 'success',
     };
 
-    Hpe
-      .reportPipelineStepStatus(mock.session, stepStatus)
+    testSuitState.session
+      .reportPipelineStepStatus(stepStatus)
       .subscribe(() => done(),
         error => done(error));
   });

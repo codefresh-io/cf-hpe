@@ -3,22 +3,22 @@ import Util from 'util';
 import Xml2js from 'xml2js';
 import Request from 'request';
 import HpeError from 'lib/hpe-error';
-import HpePipeline from 'lib/hpe-pipeline';
-import RequestRx from 'lib/request-rx';
+import { RequestRx } from 'lib/request-rx';
+import { HpePipeline } from 'lib/hpe-pipeline';
 
-class Hpe {
-  static createSession(sessionConfig) {
+class HpeApi {
+  static createSession(config) {
     const authCookies = Request.jar();
     const authRequest = Request.defaults({
       jar: authCookies,
     });
 
     const options = {
-      uri: Util.format('%s/authentication/sign_in/', sessionConfig.serverUrl),
+      uri: Util.format('%s/authentication/sign_in/', config.serverUrl),
       json: true,
       body: {
-        user: sessionConfig.user,
-        password: sessionConfig.password,
+        user: config.user,
+        password: config.password,
       },
     };
 
@@ -32,33 +32,32 @@ class Hpe {
         }
 
         const csrfToken =
-          _(authCookies.getCookies(sessionConfig.serverUrl))
+          _(authCookies.getCookies(config.serverUrl))
             .find(cookie => cookie.key === 'HPSSO_COOKIE_CSRF')
             .value;
 
-        const request = authRequest.defaults({
+        const hpeApi = new HpeApi();
+        hpeApi.request = authRequest.defaults({
           headers: {
             'HPSSO-HEADER-CSRF': csrfToken,
           },
         });
 
-        return {
-          request,
-          ...sessionConfig,
-        };
+        _.assign(hpeApi, config);
+        return hpeApi;
       });
   }
 
-  static workspaceUri(session) {
+  workspaceUri() {
     return Util.format(
       '%s/api/shared_spaces/%s/workspaces/%s',
-      session.serverUrl,
-      session.sharedSpace,
-      session.workspace);
+      this.serverUrl,
+      this.sharedSpace,
+      this.workspace);
   }
 
-  static createServer(session, server) {
-    const uri = Util.format('%s/ci_servers/', Hpe.workspaceUri(session));
+  createServer(server) {
+    const uri = Util.format('%s/ci_servers/', this.workspaceUri());
     const data = {
       instance_id: server.instanceId,
       name: server.name,
@@ -75,7 +74,7 @@ class Hpe {
     };
 
     return RequestRx
-      .post(session.request, options)
+      .post(this.request, options)
       .map(response => {
         if (response.statusCode !== 201) {
           throw new HpeError(
@@ -87,8 +86,8 @@ class Hpe {
       });
   }
 
-  static createPipeline(session, pipeline) {
-    const uri = Util.format('%s/pipelines/', Hpe.workspaceUri(session));
+  createPipeline(pipeline) {
+    const uri = Util.format('%s/pipelines/', this.workspaceUri());
     const pipelineId = _.kebabCase(pipeline.name);
     const pipelineJobs = HpePipeline.jobs(pipelineId);
 
@@ -111,7 +110,7 @@ class Hpe {
     };
 
     return RequestRx
-      .post(session.request, options)
+      .post(this.request, options)
       .map(response => {
         if (response.statusCode !== 201) {
           throw new HpeError(
@@ -123,8 +122,8 @@ class Hpe {
       });
   }
 
-  static reportPipelineStepStatus(session, stepStatus) {
-    const uri = Util.format('%s/analytics/ci/builds/', Hpe.workspaceUri(session));
+  reportPipelineStepStatus(stepStatus) {
+    const uri = Util.format('%s/analytics/ci/builds/', this.workspaceUri());
 
     const jobCiId = HpePipeline.jobId(stepStatus.pipelineId, stepStatus.stepId);
     const rootJobCiId = HpePipeline.jobId(stepStatus.pipelineId, 'root');
@@ -156,7 +155,7 @@ class Hpe {
     };
 
     return RequestRx
-      .put(session.request, options)
+      .put(this.request, options)
       .map(response => {
         if (response.statusCode !== 200) {
           throw new HpeError(
@@ -168,8 +167,8 @@ class Hpe {
       });
   }
 
-  static reportPipelineTestResults(session, testResult) {
-    const uri = Util.format('%s/test-results/', Hpe.workspaceUri(session));
+  reportPipelineTestResults(testResult) {
+    const uri = Util.format('%s/test-results/', this.workspaceUri());
     const jobCiId = HpePipeline.jobId(testResult.pipelineId, testResult.stepId);
 
     const builder = new Xml2js.Builder();
@@ -207,7 +206,7 @@ class Hpe {
     };
 
     return RequestRx
-      .post(session.request, options)
+      .post(this.request, options)
       .map(response => {
         if (response.statusCode !== 202) {
           throw new HpeError(
@@ -220,4 +219,4 @@ class Hpe {
   }
 }
 
-export default Hpe;
+export { HpeApi };

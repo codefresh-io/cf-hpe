@@ -1,3 +1,3 @@
-import Hpe from 'lib/hpe';
-import HpePipeline from 'lib/hpe-pipeline';
-export { Hpe, HpePipeline };
+import { HpeApi } from 'lib/hpe-api';
+import { HpePipeline } from 'lib/hpe-pipeline';
+export { HpeApi, HpePipeline };

@@ -5,4 +5,4 @@ class HpeError extends Error {
   }
 }
 
-export default HpeError;
+export default { HpeError };
