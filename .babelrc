@@ -4,6 +4,7 @@
     [
       "module-alias", [
       {"src": "./src", "expose": "cf-hpe"},
+      {"src": "./src/app", "expose": "app"},
       {"src": "./src/lib", "expose": "lib"}
     ]
     ],

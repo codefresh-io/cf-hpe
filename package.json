@@ -2,6 +2,8 @@
   "name": "cf-hpe",
   "version": "1.0.2",
   "private": true,
+  "main": "dist",
+  "files": ["dist"],
   "scripts": {
     "lint": "gulp lint",
     "build": "gulp build",
@@ -10,6 +12,7 @@
   },
   "dependencies": {
     "12factor-config": "^1.1.0",
+    "firebase-rx": "git+https://github.com/liorshalev01/firebase-rx.git#develop",
     "lodash": "^4.11.1",
     "mongoose": "^4.4.12",
     "node-uuid": "^1.4.7",
