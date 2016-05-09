@@ -36,10 +36,10 @@ gulp.task('integration-test', ['test'], () =>
   gulp.src(['test/*e2e.js'], { read: false })
     .pipe(processEnv({
       HPE_SERVER_URL: 'http://146.148.93.246:8080',
-      HPE_USER: 'cf_p32zor9g9gl2zbp0rp663oex0',
-      HPE_PASSWORD: '=211cb1cdb045df37I',
-      HPE_SHARED_SPACE: '1001',
-      HPE_WORKSPACE: '1002',
+      CF_HPE_USER: 'cf_p32zor9g9gl2zbp0rp663oex0',
+      CF_HPE_PASSWORD: '=211cb1cdb045df37I',
+      CF_HPE_SHARED_SPACE: '1001',
+      CF_HPE_WORKSPACE: '1002',
     }))
     .pipe(mocha({ reporter: 'spec' })));
 

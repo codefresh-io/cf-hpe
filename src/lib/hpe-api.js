@@ -3,22 +3,23 @@ import Util from 'util';
 import Xml2js from 'xml2js';
 import Request from 'request';
 import HpeError from 'lib/hpe-error';
-import { RequestRx } from 'lib/request-rx';
-import { HpePipeline } from 'lib/hpe-pipeline';
+import RequestRx from 'lib/request-rx';
+import HpePipeline from 'lib/hpe-pipeline';
+import config from './config';
 
 class HpeApi {
-  static createSession(config) {
+  static createSession() {
     const authCookies = Request.jar();
     const authRequest = Request.defaults({
       jar: authCookies,
     });
 
     const options = {
-      uri: Util.format('%s/authentication/sign_in/', config.serverUrl),
+      uri: Util.format('%s/authentication/sign_in/', config.CF_HPE_SERVER_URL),
       json: true,
       body: {
-        user: config.user,
-        password: config.password,
+        user: config.CF_HPE_USER,
+        password: config.CF_HPE_PASSWORD,
       },
     };
 
@@ -32,7 +33,7 @@ class HpeApi {
         }
 
         const csrfToken =
-          _(authCookies.getCookies(config.serverUrl))
+          _(authCookies.getCookies(config.CF_HPE_SERVER_URL))
             .find(cookie => cookie.key === 'HPSSO_COOKIE_CSRF')
             .value;
 
@@ -43,7 +44,7 @@ class HpeApi {
           },
         });
 
-        _.assign(hpeApi, config);
+        _.assign(hpeApi);
         return hpeApi;
       });
   }
@@ -51,9 +52,9 @@ class HpeApi {
   workspaceUri() {
     return Util.format(
       '%s/api/shared_spaces/%s/workspaces/%s',
-      this.serverUrl,
-      this.sharedSpace,
-      this.workspace);
+      config.CF_HPE_SERVER_URL,
+      config.CF_HPE_SHARED_SPACE,
+      config.CF_HPE_WORKSPACE);
   }
 
   createServer(server) {
@@ -219,4 +220,4 @@ class HpeApi {
   }
 }
 
-export { HpeApi };
+export default HpeApi;

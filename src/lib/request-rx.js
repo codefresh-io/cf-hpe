@@ -31,4 +31,4 @@ class RequestRx {
   }
 }
 
-export { RequestRx };
+export default RequestRx;

@@ -4,8 +4,8 @@
     [
       "module-alias", [
       {"src": "./src", "expose": "cf-hpe"},
-      {"src": "./src/app", "expose": "app"},
-      {"src": "./src/lib", "expose": "lib"}
+      {"src": "./src/lib", "expose": "lib"},
+      {"src": "./src/app", "expose": "app"}
     ]
     ],
     "transform-object-rest-spread"

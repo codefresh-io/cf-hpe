@@ -59,4 +59,4 @@ class HpePipeline {
   }
 }
 
-export { HpePipeline };
+export default HpePipeline;
