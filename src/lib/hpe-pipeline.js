@@ -36,29 +36,27 @@ const pipelineSteps = [
   },
 ];
 
-function steps() {
-  return pipelineSteps;
+class HpePipeline {
+  static steps() {
+    return pipelineSteps;
+  }
+
+  static jobId(pipelineId, stepId) {
+    return util.format('%s-%s', pipelineId, stepId);
+  }
+
+  static jobs(pipelineId) {
+    return _(HpePipeline.steps())
+      .map(step => {
+        const result = {
+          jobCiId: HpePipeline.jobId(pipelineId, step.id),
+          name: step.name,
+        };
+
+        return result;
+      })
+      .value();
+  }
 }
 
-function jobId(pipelineId, stepId) {
-  return util.format('%s-%s', pipelineId, stepId);
-}
-
-function jobs(pipelineId) {
-  return _(steps())
-    .map(step => {
-      const result = {
-        jobCiId: jobId(pipelineId, step.id),
-        name: step.name,
-      };
-
-      return result;
-    })
-    .value();
-}
-
-export default {
-  steps,
-  jobId,
-  jobs,
-};
+export default HpePipeline;
