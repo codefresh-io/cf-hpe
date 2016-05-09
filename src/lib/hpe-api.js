@@ -44,7 +44,6 @@ class HpeApi {
           },
         });
 
-        _.assign(hpeApi);
         return hpeApi;
       });
   }
