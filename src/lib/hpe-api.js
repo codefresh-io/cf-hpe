@@ -8,7 +8,7 @@ import HpePipeline from 'lib/hpe-pipeline';
 import config from './config';
 
 class HpeApi {
-  static createSession() {
+  static create() {
     const authCookies = Request.jar();
     const authRequest = Request.defaults({
       jar: authCookies,
@@ -38,7 +38,7 @@ class HpeApi {
             .value;
 
         const hpeApi = new HpeApi();
-        hpeApi.request = authRequest.defaults({
+        hpeApi._request = authRequest.defaults({
           headers: {
             'HPSSO-HEADER-CSRF': csrfToken,
           },
@@ -74,7 +74,7 @@ class HpeApi {
     };
 
     return RequestRx
-      .post(this.request, options)
+      .post(this._request, options)
       .map(response => {
         if (response.statusCode !== 201) {
           throw new HpeError(
@@ -110,7 +110,7 @@ class HpeApi {
     };
 
     return RequestRx
-      .post(this.request, options)
+      .post(this._request, options)
       .map(response => {
         if (response.statusCode !== 201) {
           throw new HpeError(
@@ -124,7 +124,6 @@ class HpeApi {
 
   reportPipelineStepStatus(stepStatus) {
     const uri = Util.format('%s/analytics/ci/builds/', this.workspaceUri());
-
     const jobCiId = HpePipeline.jobId(stepStatus.pipelineId, stepStatus.stepId);
     const rootJobCiId = HpePipeline.jobId(stepStatus.pipelineId, 'root');
 
@@ -155,7 +154,7 @@ class HpeApi {
     };
 
     return RequestRx
-      .put(this.request, options)
+      .put(this._request, options)
       .map(response => {
         if (response.statusCode !== 200) {
           throw new HpeError(
@@ -206,7 +205,7 @@ class HpeApi {
     };
 
     return RequestRx
-      .post(this.request, options)
+      .post(this._request, options)
       .map(response => {
         if (response.statusCode !== 202) {
           throw new HpeError(

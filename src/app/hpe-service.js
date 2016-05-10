@@ -1,16 +1,15 @@
-import Firebase from 'firebase';
+import _ from 'lodash';
 import Rx from 'rx';
+import Firebase from 'firebase';
 import 'firebase-rx';
 import config from './config';
 
 class HpeService {
-  static createService() {
-    return Rx.Observable.defer(() => {
-      const rootRef = new Firebase(config.CF_HPE_FIREBASE_URL);
-      rootRef
-        .rx_authWithSecretToken(config.CF_HPE_FIREBASE_SECRET, 'hpe-service');
+  constructor() {
 
-    });
+  }
+
+  buildEvent() {
   }
 }
 

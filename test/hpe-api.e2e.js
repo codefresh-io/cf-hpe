@@ -42,10 +42,9 @@ describe('HpeApi', function () {
 
   it('Should open a session', function (done) {
     HpeApi
-      .createSession()
+      .create()
       .subscribe(
         session => {
-          expect(session).to.have.property('request');
           this.testSuitState.session = session;
           done();
         },
