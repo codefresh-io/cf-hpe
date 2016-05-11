@@ -1,35 +1,54 @@
-import _ from 'lodash';
-import Rx from 'rx';
 import 'firebase-rx';
+import Rx from 'rx';
 import Firebase from 'firebase';
-import mongoose, { Schema } from 'mongoose';
 import { Account, Service, Build, objectId } from './model';
 import config from './config';
 
-/*
- fb.build-logs.id --> mongo.builds.progress_id
- mongo.builds.serviceId --> mongo.service
- */
-mongoose.connect(config.mongodbUrl);
-
 class BuildEvents {
-  static create() {
-    mongoose.connect(config.mongodbUrl);
-    this._buildLogsRef = Rx.Observable
+  static getBuildLogsRef() {
+    return Rx.Observable
       .start(() => new Firebase(config.firebaseUrl))
-      .flatMap(rootRef => rootRef.rx_authWithSecretToken(config.firebaseSecret, 'hpe-service'))
-      .flatMap(rootRef => rootRef.rx_child(config.firebaseBuildLogsPath));
+      .flatMap(rootRef => rootRef.rx_authWithSecretToken(
+        config.firebaseSecret,
+        'hpe-service',
+        { admin: true }))
+      .map(rootRef => rootRef.child(config.firebaseBuildLogsPath));
+  }
 
-    this._buildAddedEvents = this._buildLogsRef
-      .rx_onChildAdded()
-      .map(snapshot => snapshot.val());
+  static getBuildLogsEvents() {
+    return BuildEvents
+      .getBuildLogsRef()
+      .flatMap(buildLogsRef => buildLogsRef
+        .orderByChild('lastUpdate')
+        .startAt(0)
+        .limitToLast(10)
+        .rx_onChildAdded())
+      .map(snapshot => snapshot.val())
+      .flatMap(buildLog =>
+        BuildEvents
+          .findAccount(buildLog.accountId)
+          .filter(account => {
+            return true || account && account.integrations.hpe && account.integrations.hpe.active;
+          })
+          .map(() => buildLog));
+  }
+
+  static findAccount(accountId) {
+    return Rx.Observable
+      .fromPromise(() => Account.findOne({ _id: objectId(accountId) }))
+      .takeWhile(account => account)
+      .map(account => account.toObject())
+      .defaultIfEmpty(null);
   }
 
   static findServiceByProgressId(progressId) {
     return Rx.Observable
       .fromPromise(() => Build.findOne({ progress_id: objectId(progressId) }, 'serviceId'))
-      .flatMap(document => Service.findOne({ _id: objectId(document.get('serviceId')) }))
-      .map(document => document.toObject());
+      .takeWhile(progress => progress)
+      .flatMap(progress => Service.findOne({ _id: objectId(progress.get('serviceId')) }))
+      .takeWhile(service => service)
+      .map(service => service.toObject())
+      .defaultIfEmpty(null);
   }
 }
 

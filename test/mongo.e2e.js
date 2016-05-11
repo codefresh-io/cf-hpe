@@ -8,9 +8,7 @@ import mongoose, { Schema } from 'mongoose';
 describe('HpeService', function () {
 
   before(function () {
-    this.slow(5000);
-    mongoose.connect(
-      'mongodb://admin:codefreshstaging@ds049424-a0.mongolab.com:49424/google_staging?readPreference=primaryPreferred');
+    mongoose.connect('mongodb://admin:codefreshstaging@ds049424-a0.mongolab.com:49424/google_staging?readPreference=primaryPreferred');
 
   });
 

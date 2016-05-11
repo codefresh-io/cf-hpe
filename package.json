@@ -21,6 +21,7 @@
     "node-uuid": "^1.4.7",
     "request": "^2.72.0",
     "rx": "^4.1.0",
+    "validate.js": "^0.9.0",
     "xml2js": "^0.4.16"
   },
   "devDependencies": {

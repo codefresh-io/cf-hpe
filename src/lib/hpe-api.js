@@ -2,7 +2,7 @@ import _ from 'lodash';
 import Util from 'util';
 import Xml2js from 'xml2js';
 import Request from 'request';
-import HpeError from 'lib/hpe-error';
+import HpeApiError from 'lib/hpe-api-error';
 import RequestRx from 'lib/request-rx';
 import HpePipeline from 'lib/hpe-pipeline';
 import config from './config';
@@ -27,7 +27,7 @@ class HpeApi {
       .post(authRequest, options)
       .map(response => {
         if (response.statusCode !== 200) {
-          throw new HpeError(
+          throw new HpeApiError(
             response.statusCode,
             JSON.stringify(response.body, null, 2));
         }
@@ -77,7 +77,7 @@ class HpeApi {
       .post(this._request, options)
       .map(response => {
         if (response.statusCode !== 201) {
-          throw new HpeError(
+          throw new HpeApiError(
             response.statusCode,
             JSON.stringify(response.body, null, 2));
         }
@@ -113,7 +113,7 @@ class HpeApi {
       .post(this._request, options)
       .map(response => {
         if (response.statusCode !== 201) {
-          throw new HpeError(
+          throw new HpeApiError(
             response.statusCode,
             JSON.stringify(response.body, null, 2));
         }
@@ -157,7 +157,7 @@ class HpeApi {
       .put(this._request, options)
       .map(response => {
         if (response.statusCode !== 200) {
-          throw new HpeError(
+          throw new HpeApiError(
             response.statusCode,
             JSON.stringify(response.body, null, 2));
         }
@@ -208,7 +208,7 @@ class HpeApi {
       .post(this._request, options)
       .map(response => {
         if (response.statusCode !== 202) {
-          throw new HpeError(
+          throw new HpeApiError(
             response.statusCode,
             JSON.stringify(response.body, null, 2));
         }
