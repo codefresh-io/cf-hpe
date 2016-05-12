@@ -5,52 +5,40 @@ import './config.env';
 import _ from 'lodash';
 import Util from 'util';
 import { expect } from 'chai';
-import { HpeApi, HpePipeline } from 'cf-hpe';
+import { HpeApi, HpeApiPipeline } from 'lib/index';
 
 describe('HpeApi', function () {
-  before(function () {
-    this.slow(5000);
-    this.timeout(15000);
-    this.testSuitState = {
-      session: undefined,
-      serverId: undefined,
-      serverInstanceId: undefined,
-      pipelineId: undefined,
-      rootJobBuildId: undefined,
-      rootJobStartTime: undefined,
+  this.slow(5000);
+  this.timeout(15000);
+
+  const testData = {
+    hpeApi: new HpeApi(),
+    serverId: null,
+    serverInstanceId: null,
+    pipelineId: null,
+    rootJobBuildId: null,
+    rootJobStartTime: null,
+  };
+
+  function reportPipelineStepStatusHelper(stepId, status, result, done) {
+    const stepStatus = {
+      stepId,
+      serverInstanceId: testData.serverInstanceId,
+      pipelineId: testData.pipelineId,
+      buildId: testData.rootJobBuildId,
+      startTime: testData.rootJobStartTime,
+      duration: _.now() - testData.rootJobStartTime,
+      status,
+      result,
     };
 
-    this.reportPipelineStepStatusHelper = function (stepId, status, result, done) {
-      const stepStatus = {
-        stepId,
-        serverInstanceId: this.testSuitState.serverInstanceId,
-        pipelineId: this.testSuitState.pipelineId,
-        buildId: this.testSuitState.rootJobBuildId,
-        startTime: this.testSuitState.rootJobStartTime,
-        duration: _.now() - this.testSuitState.rootJobStartTime,
-        status,
-        result,
-      };
-
-      this.testSuitState.session
-        .reportPipelineStepStatus(stepStatus)
-        .subscribe(
-          () => done(),
-          error => done(error));
-    };
-  });
-
-  it('Should open a session', function (done) {
-    HpeApi
-      .create()
+    testData.hpeApi
+      .reportPipelineStepStatus(stepStatus)
       .subscribe(
-        session => {
-          this.testSuitState.session = session;
-          done();
-        },
+        () => done(),
         error => done(error));
-  });
-
+  }
+  
   it('Should create a CI server', function (done) {
     const serverName = Util.format('Codefresh %d', _.now());
     const serverInstanceId = _.kebabCase(serverName);
@@ -60,8 +48,8 @@ describe('HpeApi', function () {
       name: serverName,
     };
 
-    this.testSuitState.session
-      .createServer(server)
+    testData.hpeApi
+      .createCiServer(server)
       .subscribe(
         response => {
           expect(response.id).to.be.a('number');
@@ -69,8 +57,8 @@ describe('HpeApi', function () {
           expect(response.name).to.equal(server.name);
           expect(response.server_type).to.equal('Codefresh');
 
-          this.testSuitState.serverId = response.id;
-          this.testSuitState.serverInstanceId = response.instance_id;
+          testData.serverId = response.id;
+          testData.serverInstanceId = response.instance_id;
           done();
         },
         error => done(error));
@@ -83,19 +71,19 @@ describe('HpeApi', function () {
     const pipeline = {
       id: pipelineId,
       name: pipelineName,
-      serverId: this.testSuitState.serverId,
+      serverId: testData.serverId,
     };
 
-    this.testSuitState.session
+    testData.hpeApi
       .createPipeline(pipeline)
       .subscribe(
         response => {
           expect(response.id).to.be.a('number');
           expect(response.root_job.id).to.be.a('number');
-          expect(response.ci_server.id).to.equal(this.testSuitState.serverId);
+          expect(response.ci_server.id).to.equal(testData.serverId);
           expect(response.name).to.equal(pipeline.name);
 
-          const pipelineJobs = HpePipeline.jobs(pipeline.id);
+          const pipelineJobs = HpeApiPipeline.jobs(pipeline.id);
           expect(response.root_job_ci_id).to.equal(pipelineJobs[0].jobCiId);
           expect(response.jobs[0].jobCiId).to.equal(pipelineJobs[0].jobCiId);
           expect(response.jobs[1].jobCiId).to.equal(pipelineJobs[1].jobCiId);
@@ -106,7 +94,7 @@ describe('HpeApi', function () {
           expect(response.jobs[6].jobCiId).to.equal(pipelineJobs[6].jobCiId);
           expect(response.jobs[7].jobCiId).to.equal(pipelineJobs[7].jobCiId);
 
-          this.testSuitState.pipelineId = pipeline.id;
+          testData.pipelineId = pipeline.id;
           done();
         },
         error => done(error));
@@ -118,8 +106,8 @@ describe('HpeApi', function () {
 
     const stepStatus = {
       stepId: 'root',
-      serverInstanceId: this.testSuitState.serverInstanceId,
-      pipelineId: this.testSuitState.pipelineId,
+      serverInstanceId: testData.serverInstanceId,
+      pipelineId: testData.pipelineId,
       buildId,
       buildName,
       startTime: _.now(),
@@ -128,51 +116,51 @@ describe('HpeApi', function () {
       result: 'unavailable',
     };
 
-    this.testSuitState.session
+    testData.hpeApi
       .reportPipelineStepStatus(stepStatus)
       .subscribe(
         () => {
-          this.testSuitState.rootJobBuildId = stepStatus.buildId;
-          this.testSuitState.rootJobStartTime = stepStatus.startTime;
+          testData.rootJobBuildId = stepStatus.buildId;
+          testData.rootJobStartTime = stepStatus.startTime;
           done();
         },
         error => done(error));
   });
 
   it('Should report pipeline step "clone-repository" status as "finished"', function (done) {
-    this.reportPipelineStepStatusHelper('clone-repository', 'finished', 'success', done);
+    reportPipelineStepStatusHelper('clone-repository', 'finished', 'success', done);
   });
 
   it('Should report pipeline step "build-dockerfile" status as "finished"', function (done) {
-    this.reportPipelineStepStatusHelper('build-dockerfile', 'finished', 'success', done);
+    reportPipelineStepStatusHelper('build-dockerfile', 'finished', 'success', done);
   });
 
   it('Should report pipeline step "unit-test-script" status as "finished"', function (done) {
-    this.reportPipelineStepStatusHelper('unit-test-script', 'finished', 'success', done);
+    reportPipelineStepStatusHelper('unit-test-script', 'finished', 'success', done);
   });
 
   it('Should report pipeline step "push-docker-registry" status as "finished"', function (done) {
-    this.reportPipelineStepStatusHelper('push-docker-registry', 'finished', 'success', done);
+    reportPipelineStepStatusHelper('push-docker-registry', 'finished', 'success', done);
   });
 
   it('Should report pipeline step "integration-test-script" status as "finished"', function (done) {
-    this.reportPipelineStepStatusHelper('integration-test-script', 'finished', 'success', done);
+    reportPipelineStepStatusHelper('integration-test-script', 'finished', 'success', done);
   });
 
   it('Should report pipeline step "security-validation" status as "finished"', function (done) {
-    this.reportPipelineStepStatusHelper('security-validation', 'finished', 'success', done);
+    reportPipelineStepStatusHelper('security-validation', 'finished', 'success', done);
   });
 
   it('Should report pipeline step "deploy-script" status as "finished"', function (done) {
-    this.reportPipelineStepStatusHelper('deploy-script', 'finished', 'success', done);
+    reportPipelineStepStatusHelper('deploy-script', 'finished', 'success', done);
   });
 
   it('Should publish test success results #1', function (done) {
     const testResult = {
       stepId: 'unit-test-script',
-      serverInstanceId: this.testSuitState.serverInstanceId,
-      pipelineId: this.testSuitState.pipelineId,
-      buildId: this.testSuitState.rootJobBuildId,
+      serverInstanceId: testData.serverInstanceId,
+      pipelineId: testData.pipelineId,
+      buildId: testData.rootJobBuildId,
       testRuns: [
         {
           testName: 'Should pass unit test #1',
@@ -186,7 +174,7 @@ describe('HpeApi', function () {
       ],
     };
 
-    this.testSuitState.session
+    testData.hpeApi
       .reportPipelineTestResults(testResult)
       .subscribe(() => done(),
         error => done(error));
@@ -195,9 +183,9 @@ describe('HpeApi', function () {
   it('Should publish test failed results #2', function (done) {
     const testResult = {
       stepId: 'unit-test-script',
-      serverInstanceId: this.testSuitState.serverInstanceId,
-      pipelineId: this.testSuitState.pipelineId,
-      buildId: this.testSuitState.rootJobBuildId,
+      serverInstanceId: testData.serverInstanceId,
+      pipelineId: testData.pipelineId,
+      buildId: testData.rootJobBuildId,
       testRuns: [
         {
           testName: 'Should pass unit test #2',
@@ -211,7 +199,7 @@ describe('HpeApi', function () {
       ],
     };
 
-    this.testSuitState.session
+    testData.hpeApi
       .reportPipelineTestResults(testResult)
       .subscribe(() => done(),
         error => done(error));
@@ -220,9 +208,9 @@ describe('HpeApi', function () {
   it('Should publish test success results #3', function (done) {
     const testResult = {
       stepId: 'integration-test-script',
-      serverInstanceId: this.testSuitState.serverInstanceId,
-      pipelineId: this.testSuitState.pipelineId,
-      buildId: this.testSuitState.rootJobBuildId,
+      serverInstanceId: testData.serverInstanceId,
+      pipelineId: testData.pipelineId,
+      buildId: testData.rootJobBuildId,
       testRuns: [
         {
           testName: 'Should pass integration test #1',
@@ -236,7 +224,7 @@ describe('HpeApi', function () {
       ],
     };
 
-    this.testSuitState.session
+    testData.hpeApi
       .reportPipelineTestResults(testResult)
       .subscribe(() => done(),
         error => done(error));
@@ -245,9 +233,9 @@ describe('HpeApi', function () {
   it('Should publish test failed results #4', function (done) {
     const testResult = {
       stepId: 'integration-test-script',
-      serverInstanceId: this.testSuitState.serverInstanceId,
-      pipelineId: this.testSuitState.pipelineId,
-      buildId: this.testSuitState.rootJobBuildId,
+      serverInstanceId: testData.serverInstanceId,
+      pipelineId: testData.pipelineId,
+      buildId: testData.rootJobBuildId,
       testRuns: [
         {
           testName: 'Should pass integration test #2',
@@ -261,7 +249,7 @@ describe('HpeApi', function () {
       ],
     };
 
-    this.testSuitState.session
+    testData.hpeApi
       .reportPipelineTestResults(testResult)
       .subscribe(() => done(),
         error => done(error));
@@ -270,16 +258,16 @@ describe('HpeApi', function () {
   it('Should report pipeline status as "finished"', function (done) {
     const stepStatus = {
       stepId: 'root',
-      serverInstanceId: this.testSuitState.serverInstanceId,
-      pipelineId: this.testSuitState.pipelineId,
-      buildId: this.testSuitState.rootJobBuildId,
-      startTime: this.testSuitState.rootJobStartTime,
-      duration: _.now() - this.testSuitState.rootJobStartTime,
+      serverInstanceId: testData.serverInstanceId,
+      pipelineId: testData.pipelineId,
+      buildId: testData.rootJobBuildId,
+      startTime: testData.rootJobStartTime,
+      duration: _.now() - testData.rootJobStartTime,
       status: 'finished',
       result: 'success',
     };
 
-    this.testSuitState.session
+    testData.hpeApi
       .reportPipelineStepStatus(stepStatus)
       .subscribe(() => done(),
         error => done(error));

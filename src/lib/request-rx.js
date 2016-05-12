@@ -2,9 +2,17 @@ import _ from 'lodash';
 import Rx from 'rx';
 
 class RequestRx {
-  static request(request, options) {
+  constructor(request) {
+    this.request = request;
+  }
+
+  static from(request) {
+    return new RequestRx(request);
+  }
+
+  get(options) {
     return Rx.Observable.create(observer => {
-      request(options, (error, response) => {
+      this.request.get(options, (error, response) => {
         if (error) {
           observer.onError(error);
           return;
@@ -16,19 +24,48 @@ class RequestRx {
     });
   }
 
-  static post(request, options) {
-    return RequestRx.request(request, _.assign(
-      options, {
-        method: 'POST',
-      }));
+  post(options) {
+    return Rx.Observable.create(observer => {
+      this.request.post(options, (error, response) => {
+        if (error) {
+          observer.onError(error);
+          return;
+        }
+
+        observer.onNext(response);
+        observer.onCompleted();
+      });
+    });
   }
 
-  static put(request, options) {
-    return RequestRx.request(request, _.assign(
-      options, {
-        method: 'PUT',
-      }));
+  put(options) {
+    return Rx.Observable.create(observer => {
+      this.request.put(options, (error, response) => {
+        if (error) {
+          observer.onError(error);
+          return;
+        }
+
+        observer.onNext(response);
+        observer.onCompleted();
+      });
+    });
   }
+
+  delete(options) {
+    return Rx.Observable.create(observer => {
+      this.request.delete(options, (error, response) => {
+        if (error) {
+          observer.onError(error);
+          return;
+        }
+
+        observer.onNext(response);
+        observer.onCompleted();
+      });
+    });
+  }
+
 }
 
 export default RequestRx;

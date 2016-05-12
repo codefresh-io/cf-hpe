@@ -1,15 +1,16 @@
 import _ from 'lodash';
 import Rx from 'rx';
-import Firebase from 'firebase';
-import 'firebase-rx';
+import { HpeApi } from 'lib/hpe-api';
 import config from './config';
 
 class HpeService {
   constructor() {
 
   }
-
-  buildEvent() {
+  
+  createCiServer() {
+    const serverName = Util.format('Codefresh %d', _.now());
+    const serverInstanceId = _.kebabCase(serverName);
   }
 }
 

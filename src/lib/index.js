@@ -1,7 +1,7 @@
 import HpeApi from './hpe-api';
-import HpePipeline from './hpe-pipeline';
+import HpeApiPipeline from './hpe-api-pipeline';
 
 export {
   HpeApi,
-  HpePipeline,
+  HpeApiPipeline,
 };

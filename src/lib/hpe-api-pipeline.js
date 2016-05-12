@@ -36,7 +36,7 @@ const _pipelineSteps = [
   },
 ];
 
-class HpePipeline {
+class HpeApiPipeline {
   static steps() {
     return _pipelineSteps;
   }
@@ -46,10 +46,10 @@ class HpePipeline {
   }
 
   static jobs(pipelineId) {
-    return _(HpePipeline.steps())
+    return _(HpeApiPipeline.steps())
       .map(step => {
         const result = {
-          jobCiId: HpePipeline.jobId(pipelineId, step.id),
+          jobCiId: HpeApiPipeline.jobId(pipelineId, step.id),
           name: step.name,
         };
 
@@ -59,4 +59,4 @@ class HpePipeline {
   }
 }
 
-export default HpePipeline;
+export default HpeApiPipeline;

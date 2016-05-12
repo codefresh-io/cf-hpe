@@ -1,11 +1,16 @@
-import 'firebase-rx';
 import Rx from 'rx';
+import 'firebase-rx';
 import Firebase from 'firebase';
 import { Account, Service, Build, objectId } from './model';
 import config from './config';
 
 class BuildEvents {
-  static getBuildLogsRef() {
+  constructor() {
+    this.config = config;
+    this.buildLogsRef = this.getBuildLogsRef().single();
+  }
+
+  getBuildLogsRef() {
     return Rx.Observable
       .start(() => new Firebase(config.firebaseUrl))
       .flatMap(rootRef => rootRef.rx_authWithSecretToken(
@@ -15,9 +20,8 @@ class BuildEvents {
       .map(rootRef => rootRef.child(config.firebaseBuildLogsPath));
   }
 
-  static getBuildLogsEvents() {
-    return BuildEvents
-      .getBuildLogsRef()
+  getBuildStartedEvents() {
+    return this.buildLogsRef
       .flatMap(buildLogsRef => buildLogsRef
         .orderByChild('lastUpdate')
         .startAt(0)
@@ -25,15 +29,13 @@ class BuildEvents {
         .rx_onChildAdded())
       .map(snapshot => snapshot.val())
       .flatMap(buildLog =>
-        BuildEvents
+        this
           .findAccount(buildLog.accountId)
-          .filter(account => {
-            return true || account && account.integrations.hpe && account.integrations.hpe.active;
-          })
+          .filter(account => account && this.isHpeIntegrationAccount(account))
           .map(() => buildLog));
   }
 
-  static findAccount(accountId) {
+  findAccount(accountId) {
     return Rx.Observable
       .fromPromise(() => Account.findOne({ _id: objectId(accountId) }))
       .takeWhile(account => account)
@@ -41,14 +43,8 @@ class BuildEvents {
       .defaultIfEmpty(null);
   }
 
-  static findServiceByProgressId(progressId) {
-    return Rx.Observable
-      .fromPromise(() => Build.findOne({ progress_id: objectId(progressId) }, 'serviceId'))
-      .takeWhile(progress => progress)
-      .flatMap(progress => Service.findOne({ _id: objectId(progress.get('serviceId')) }))
-      .takeWhile(service => service)
-      .map(service => service.toObject())
-      .defaultIfEmpty(null);
+  isHpeIntegrationAccount(account) {
+    return true || account.integrations.hpe && account.integrations.hpe.active;
   }
 }
 
