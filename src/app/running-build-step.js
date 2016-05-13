@@ -4,7 +4,6 @@ import 'firebase-rx';
 import Firebase from 'firebase';
 import { Account, Service, Build, objectId } from './model';
 import { HpeApi, HpeApiPipeline } from 'lib/hpe-api';
-import _config from './config';
 
 function findAccount(buildLogRef) {
   return buildLogRef
@@ -30,11 +29,28 @@ function openHpeSession(account) {
   return HpeApi.connect();
 }
 
-function getHpeCiServer(hpeSession, account) {
-  return HpeApi.createCiServer(hpeSession, {
-    instanceId: account.name,
+function openHpeCiServer(hpeSession, account) {
+  const data = {
+    instanceId: account._id,
     name: account.name,
-  });
+  };
+
+  return HpeApi
+    .findCiServer(hpeSession, data.instanceId)
+    .flapMap(ciServer => Rx.Observable.if(
+      () => ciServer,
+      Rx.Observable.just(ciServer),
+      HpeApi.createCiServer(hpeSession, data)));
+}
+
+function openHpePipeline(hpeSession, ciServer, service) {
+  const data = {
+    id: service._id,
+    name: service.name,
+    serverId: ciServer.id,
+  };
+
+  return HpeApi.createPipeline(hpeSession, data);
 }
 
 function mapBuildLogStepToPipelineStep(name) {
@@ -55,31 +71,29 @@ function mapBuildLogStepToPipelineStep(name) {
   }
 }
 
-function processBuildLogStep(buildLogStep) {
-
-}
 
 function processBuildLogSteps(buildLogRef) {
-  const buildLogStepsRef = buildLogRef.child('steps').shareReplay();
-  const buildLogStepsAdded = buildLogStepsRef.flatMap(stepsRef => stepsRef.rx_onChildAdded());
-  const buildLogStepsChanged = buildLogStepsRef.flatMap(stepsRef => stepsRef.rx_onChildChanged());
-  const constBuildLogStepsEvents = Rx.Observable.merge(buildLogStepsAdded, buildLogStepsChanged);
+  const buildLogStepsRef = buildLogRef.child('steps');
+  const buildLogStepsEvents = Rx.Observable.merge(
+    buildLogStepsRef.rx_onChildAdded(),
+    buildLogStepsRef.rx_onChildChanged());
 
-  return constBuildLogStepsEvents
+  return buildLogStepsEvents
     .map(snapshot => snapshot.val());
 }
 
 
 class RunningBuildStep {
-  static create(buildLogRef) {
+  static getRunningBuildSteps(buildLogRef) {
     return Rx.Observable.defer(() => {
       const account = findAccount(buildLogRef).shareReplay();
       const service = findService(buildLogRef).shareReplay();
+      const hpeSession = account.flatMap(openHpeSession).shareReplay();
+      const hpeCiServer = Rx.Observable.zip(hpeSession, account, openHpeCiServer).shareReplay();
+      const hpePipeline = Rx.Observable.zip(hpeSession, account, openHpePipeline).shareReplay();
+
       return processBuildLogSteps(buildLogRef);
 
-
-      const hpeSession = account.flatMap(openHpeSession).shareReplay();
-      const hpeCiServer = Rx.Observable.zip(hpeSession, account, createCiServer).shareReplay();
     });
   }
 }

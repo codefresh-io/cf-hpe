@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import Rx from 'rx';
 import Util from 'util';
 import Xml2js from 'xml2js';
 import request from 'request';
@@ -53,8 +54,28 @@ class HpeApi {
       session.config.hpeWorkspace);
   }
 
+  static findCiServer(session, instanceId) {
+    const options = {
+      uri: Util.format('%s/ci_servers/', HpeApi.getWorkspaceUri(session)),
+      json: true,
+    };
+
+    return RequestRx
+      .get(session.request, options)
+      .flatMap(response => {
+        if (response.statusCode !== 200) {
+          throw new HpeApiError(
+            response.statusCode,
+            JSON.stringify(response.body, null, 2));
+        }
+
+        return Rx.Observable
+          .from(response.body.data)
+          .first(ciServer => ciServer.instance_id === instanceId, null, null);
+      });
+  }
+
   static createCiServer(session, server) {
-    const uri = Util.format('%s/ci_servers/', HpeApi.getWorkspaceUri(session));
     const data = {
       instance_id: server.instanceId,
       name: server.name,
@@ -63,7 +84,7 @@ class HpeApi {
     };
 
     const options = {
-      uri,
+      uri: Util.format('%s/ci_servers/', HpeApi.getWorkspaceUri(session)),
       json: true,
       body: {
         data: [data],
@@ -84,10 +105,7 @@ class HpeApi {
   }
 
   static createPipeline(session, pipeline) {
-    const uri = Util.format('%s/pipelines/', HpeApi.getWorkspaceUri(session));
-    const pipelineId = _.kebabCase(pipeline.name);
-    const pipelineJobs = HpeApiPipeline.jobs(pipelineId);
-
+    const pipelineJobs = HpeApiPipeline.jobs(pipeline.id);
     const data = {
       name: pipeline.name,
       root_job_ci_id: pipelineJobs[0].jobCiId,
@@ -99,7 +117,7 @@ class HpeApi {
     };
 
     const options = {
-      uri,
+      uri: Util.format('%s/pipelines/', HpeApi.getWorkspaceUri(session)),
       json: true,
       body: {
         data: [data],
@@ -120,7 +138,6 @@ class HpeApi {
   }
 
   static reportPipelineStepStatus(session, stepStatus) {
-    const uri = Util.format('%s/analytics/ci/builds/', HpeApi.getWorkspaceUri(session));
     const jobCiId = HpeApiPipeline.jobId(stepStatus.pipelineId, stepStatus.stepId);
     const rootJobCiId = HpeApiPipeline.jobId(stepStatus.pipelineId, 'root');
 
@@ -145,7 +162,7 @@ class HpeApi {
     }
 
     const options = {
-      uri,
+      uri: Util.format('%s/analytics/ci/builds/', HpeApi.getWorkspaceUri(session)),
       json: true,
       body: data,
     };
@@ -164,9 +181,7 @@ class HpeApi {
   }
 
   static reportPipelineTestResults(session, testResult) {
-    const uri = Util.format('%s/test-results/', HpeApi.getWorkspaceUri(session));
     const jobCiId = HpeApiPipeline.jobId(testResult.pipelineId, testResult.stepId);
-
     const builder = new Xml2js.Builder();
     const data = builder.buildObject({
       test_result: {
@@ -196,7 +211,7 @@ class HpeApi {
     });
 
     const options = {
-      uri,
+      uri: Util.format('%s/test-results/', HpeApi.getWorkspaceUri(session)),
       'content-type': 'application/xml',
       body: data,
     };

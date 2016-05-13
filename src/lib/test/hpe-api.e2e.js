@@ -75,6 +75,18 @@ describe('HpeApi', function () {
         error => done(error));
   });
 
+  it('Should find a CI server', function (done) {
+    HpeApi
+      .findCiServer(testData.session, testData.serverInstanceId)
+      .subscribe(
+        response => {
+          expect(response.id).to.be.a('number');
+          expect(response.instance_id).to.equal(testData.serverInstanceId);
+          done();
+        },
+        error => done(error));
+  });
+
   it('Should create a CI server pipeline ', function (done) {
     const pipelineName = Util.format('Pipeline %d', _.now());
     const pipelineId = _.kebabCase(pipelineName);

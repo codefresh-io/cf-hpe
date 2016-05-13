@@ -2,9 +2,9 @@ import Rx from 'rx';
 import 'firebase-rx';
 import Firebase from 'firebase';
 import { Account, objectId } from './model';
-import _config from './config';
+import config from './config';
 
-function getBuildLogsRef(config) {
+function getBuildLogsRef() {
   return Rx.Observable
     .start(() => new Firebase(config.firebaseUrl))
     .flatMap(rootRef => rootRef.rx_authWithSecretToken(
@@ -16,9 +16,7 @@ function getBuildLogsRef(config) {
 
 function getStartedBuildLogs(buildLogsRef) {
   return buildLogsRef
-    .orderByChild('lastUpdate')
-    .startAt(0)
-    .limitToLast(5)
+    .limitToFirst(10)
     .rx_onChildAdded();
 }
 
@@ -32,18 +30,20 @@ function isHpeIntegrationAccount(account) {
   return true || account.integrations.hpe && account.integrations.hpe.active;
 }
 
-function getIntegrationBuildLogs(buildLogRef) {
-  return findAccount(buildLogRef.val().accountId)
+function filterIntegrationBuildLogs(buildLog) {
+  return findAccount(buildLog.val().accountId)
     .filter(account => account && isHpeIntegrationAccount(account))
-    .map(() => buildLogRef);
+    .map(() => buildLog);
 }
 
 class RunningBuild {
-  static create() {
+  static getRunningBuilds() {
     return Rx.Observable.defer(() => {
-      const buildLogsRef = getBuildLogsRef(_config).shareReplay();
+      const buildLogsRef = getBuildLogsRef().shareReplay();
       const startedBuildLogs = buildLogsRef.flatMap(getStartedBuildLogs);
-      const integrationBuildLogs = startedBuildLogs.flatMap(getIntegrationBuildLogs);
+      const integrationBuildLogs = startedBuildLogs
+        .flatMap(filterIntegrationBuildLogs)
+        .map(buildLog => buildLog.ref());
       return integrationBuildLogs;
     });
   }
