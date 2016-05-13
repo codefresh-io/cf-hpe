@@ -14,13 +14,12 @@ function getBuildLogsRef(config) {
     .map(rootRef => rootRef.child(config.firebaseBuildLogsPath));
 }
 
-function getBuildLogsEvents(buildLogsRef) {
+function getStartedBuildLogs(buildLogsRef) {
   return buildLogsRef
     .orderByChild('lastUpdate')
     .startAt(0)
     .limitToLast(5)
-    .rx_onChildAdded()
-    .map(snapshot => snapshot.val());
+    .rx_onChildAdded();
 }
 
 function findAccount(accountId) {
@@ -33,21 +32,21 @@ function isHpeIntegrationAccount(account) {
   return true || account.integrations.hpe && account.integrations.hpe.active;
 }
 
-function getIntegrationBuildEvents(buildEvent) {
-  return findAccount(buildEvent.accountId)
+function getIntegrationBuildLogs(buildLogRef) {
+  return findAccount(buildLogRef.val().accountId)
     .filter(account => account && isHpeIntegrationAccount(account))
-    .map(() => buildEvent);
+    .map(() => buildLogRef);
 }
 
-class BuildEvents {
+class RunningBuild {
   static create() {
     return Rx.Observable.defer(() => {
       const buildLogsRef = getBuildLogsRef(_config).shareReplay();
-      const buildLogsEvents = buildLogsRef.flatMap(getBuildLogsEvents);
-      const integrationBuildEvents = buildLogsEvents.flatMap(getIntegrationBuildEvents);
-      return integrationBuildEvents;
+      const startedBuildLogs = buildLogsRef.flatMap(getStartedBuildLogs);
+      const integrationBuildLogs = startedBuildLogs.flatMap(getIntegrationBuildLogs);
+      return integrationBuildLogs;
     });
   }
 }
 
-export default BuildEvents;
+export default RunningBuild;
