@@ -22,17 +22,20 @@ class BuildEvents {
 
   getBuildStartedEvents() {
     return this.buildLogsRef
-      .flatMap(buildLogsRef => buildLogsRef
-        .orderByChild('lastUpdate')
-        .startAt(0)
-        .limitToLast(10)
-        .rx_onChildAdded())
-      .map(snapshot => snapshot.val())
-      .flatMap(buildLog =>
-        this
+      .flatMap(buildLogsRef => {
+        return buildLogsRef
+          .orderByChild('lastUpdate')
+          .startAt(0)
+          .limitToLast(10)
+          .rx_onChildAdded();
+      })
+      .flatMap(snapshot => {
+        const buildLog = snapshot.val();
+        return this
           .findAccount(buildLog.accountId)
           .filter(account => account && this.isHpeIntegrationAccount(account))
-          .map(() => buildLog));
+          .map(() => buildLog);
+      });
   }
 
   findAccount(accountId) {

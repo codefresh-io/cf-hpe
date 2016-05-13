@@ -8,10 +8,11 @@ import config from './config';
 
 class BuildProgress {
   constructor(buildLogRef) {
+    this.config = config;
     this.buildLogRef = buildLogRef;
-    this.hpeApi = HpeApi.create().single();
-    this.account = this.findAccount().single();
-    this.service = this.findService().single();
+    this.hpeApi = new HpeApi();
+    this.account = this.findAccount().shareReplay();
+    this.service = this.findService().shareReplay();
     this.buildProgressEvents = this.getBuildProgressEvents();
   }
 

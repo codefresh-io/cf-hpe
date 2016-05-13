@@ -1,18 +1,9 @@
-import _ from 'lodash';
 import Rx from 'rx';
 
 class RequestRx {
-  constructor(request) {
-    this.request = request;
-  }
-
-  static from(request) {
-    return new RequestRx(request);
-  }
-
-  get(options) {
+  static get(request, options) {
     return Rx.Observable.create(observer => {
-      this.request.get(options, (error, response) => {
+      request.get(options, (error, response) => {
         if (error) {
           observer.onError(error);
           return;
@@ -24,9 +15,9 @@ class RequestRx {
     });
   }
 
-  post(options) {
+  static post(request, options) {
     return Rx.Observable.create(observer => {
-      this.request.post(options, (error, response) => {
+      request.post(options, (error, response) => {
         if (error) {
           observer.onError(error);
           return;
@@ -38,9 +29,9 @@ class RequestRx {
     });
   }
 
-  put(options) {
+  static put(request, options) {
     return Rx.Observable.create(observer => {
-      this.request.put(options, (error, response) => {
+      request.put(options, (error, response) => {
         if (error) {
           observer.onError(error);
           return;
@@ -52,9 +43,9 @@ class RequestRx {
     });
   }
 
-  delete(options) {
+  static delete(request, options) {
     return Rx.Observable.create(observer => {
-      this.request.delete(options, (error, response) => {
+      request.delete(options, (error, response) => {
         if (error) {
           observer.onError(error);
           return;

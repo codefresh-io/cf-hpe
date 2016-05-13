@@ -12,7 +12,7 @@ describe('HpeApi', function () {
   this.timeout(15000);
 
   const testData = {
-    hpeApi: new HpeApi(),
+    session: null,
     serverId: null,
     serverInstanceId: null,
     pipelineId: null,
@@ -32,13 +32,24 @@ describe('HpeApi', function () {
       result,
     };
 
-    testData.hpeApi
-      .reportPipelineStepStatus(stepStatus)
+    HpeApi
+      .reportPipelineStepStatus(testData.session, stepStatus)
       .subscribe(
         () => done(),
         error => done(error));
   }
-  
+
+  it('Should open a session', function (done) {
+    HpeApi
+      .connect()
+      .subscribe(
+        session => {
+          testData.session = session;
+          done();
+        },
+        error => done(error));
+  });
+
   it('Should create a CI server', function (done) {
     const serverName = Util.format('Codefresh %d', _.now());
     const serverInstanceId = _.kebabCase(serverName);
@@ -48,8 +59,8 @@ describe('HpeApi', function () {
       name: serverName,
     };
 
-    testData.hpeApi
-      .createCiServer(server)
+    HpeApi
+      .createCiServer(testData.session, server)
       .subscribe(
         response => {
           expect(response.id).to.be.a('number');
@@ -74,8 +85,8 @@ describe('HpeApi', function () {
       serverId: testData.serverId,
     };
 
-    testData.hpeApi
-      .createPipeline(pipeline)
+    HpeApi
+      .createPipeline(testData.session, pipeline)
       .subscribe(
         response => {
           expect(response.id).to.be.a('number');
@@ -116,8 +127,8 @@ describe('HpeApi', function () {
       result: 'unavailable',
     };
 
-    testData.hpeApi
-      .reportPipelineStepStatus(stepStatus)
+    HpeApi
+      .reportPipelineStepStatus(testData.session, stepStatus)
       .subscribe(
         () => {
           testData.rootJobBuildId = stepStatus.buildId;
@@ -174,8 +185,8 @@ describe('HpeApi', function () {
       ],
     };
 
-    testData.hpeApi
-      .reportPipelineTestResults(testResult)
+    HpeApi
+      .reportPipelineTestResults(testData.session, testResult)
       .subscribe(() => done(),
         error => done(error));
   });
@@ -199,8 +210,8 @@ describe('HpeApi', function () {
       ],
     };
 
-    testData.hpeApi
-      .reportPipelineTestResults(testResult)
+    HpeApi
+      .reportPipelineTestResults(testData.session, testResult)
       .subscribe(() => done(),
         error => done(error));
   });
@@ -224,8 +235,8 @@ describe('HpeApi', function () {
       ],
     };
 
-    testData.hpeApi
-      .reportPipelineTestResults(testResult)
+    HpeApi
+      .reportPipelineTestResults(testData.session, testResult)
       .subscribe(() => done(),
         error => done(error));
   });
@@ -249,8 +260,8 @@ describe('HpeApi', function () {
       ],
     };
 
-    testData.hpeApi
-      .reportPipelineTestResults(testResult)
+    HpeApi
+      .reportPipelineTestResults(testData.session, testResult)
       .subscribe(() => done(),
         error => done(error));
   });
@@ -267,8 +278,8 @@ describe('HpeApi', function () {
       result: 'success',
     };
 
-    testData.hpeApi
-      .reportPipelineStepStatus(stepStatus)
+    HpeApi
+      .reportPipelineStepStatus(testData.session, stepStatus)
       .subscribe(() => done(),
         error => done(error));
   });
