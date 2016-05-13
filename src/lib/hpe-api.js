@@ -5,18 +5,18 @@ import request from 'request';
 import RequestRx from 'lib/request-rx';
 import HpeApiError from 'lib/hpe-api-error';
 import HpeApiPipeline from 'lib/hpe-api-pipeline';
-import config from './config';
+import config from './hpe-api-config';
 
 class HpeApi {
   static connect() {
     const jar = request.jar();
     const signInRequest = request.defaults({ jar });
     const options = {
-      uri: Util.format('%s/authentication/sign_in/', config.CF_HPE_SERVER_URL),
+      uri: Util.format('%s/authentication/sign_in/', config.hpeServerUrl),
       json: true,
       body: {
-        user: config.CF_HPE_USER,
-        password: config.CF_HPE_PASSWORD,
+        user: config.hpeUser,
+        password: config.hpePassword,
       },
     };
 
@@ -30,19 +30,17 @@ class HpeApi {
         }
 
         const csrfToken =
-          _(jar.getCookies(config.CF_HPE_SERVER_URL))
+          _(jar.getCookies(config.hpeServerUrl))
             .find(cookie => cookie.key === 'HPSSO_COOKIE_CSRF')
             .value;
 
-        const request = signInRequest.defaults({
-          headers: {
-            'HPSSO-HEADER-CSRF': csrfToken,
-          },
-        });
-
         return {
           config,
-          request,
+          request: signInRequest.defaults({
+            headers: {
+              'HPSSO-HEADER-CSRF': csrfToken,
+            },
+          }),
         };
       });
   }
@@ -50,9 +48,9 @@ class HpeApi {
   static getWorkspaceUri(session) {
     return Util.format(
       '%s/api/shared_spaces/%s/workspaces/%s',
-      session.config.CF_HPE_SERVER_URL,
-      session.config.CF_HPE_SHARED_SPACE,
-      session.config.CF_HPE_WORKSPACE);
+      session.config.hpeServerUrl,
+      session.config.hpeSharedSpace,
+      session.config.hpeWorkspace);
   }
 
   static createCiServer(session, server) {

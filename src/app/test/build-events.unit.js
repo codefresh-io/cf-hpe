@@ -11,35 +11,9 @@ describe('BuildEvents', function () {
   this.slow(2000);
   this.timeout(30000);
 
-  it('Should return builds log ref', function (done) {
+  it.only('Should receive builds events', function (done) {
     BuildEvents
-      .getBuildLogsRef()
-      .flatMap(buildLogRef => {
-        return buildLogRef
-          .orderByChild('lastUpdate')
-          .startAt(0)
-          .rx_onChildAdded()
-          .map(snapshot => snapshot.val().lastUpdate)
-          .reduce((prev, value) => {
-            let result = true;
-            if (value < prev) {
-              result = false;
-            }
-
-            expect(result).to.be.true;
-            return value;
-          })
-          .doOnNext(() => {
-            done();
-          });
-
-      })
-      .subscribe();
-  });
-
-  it.only('Should receive builds log events', function (done) {
-    BuildEvents
-      .getBuildLogsEvents()
+      .create()
       .doOnNext(buildEvent => {
 
       })

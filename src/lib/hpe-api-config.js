@@ -1,31 +1,31 @@
 import config from '12factor-config';
 
 export default config({
-  CF_HPE_SERVER_URL: {
+  hpeServerUrl: {
     env: 'CF_HPE_SERVER_URL',
     type: 'string',
     required: true,
   },
 
-  CF_HPE_USER: {
+  hpeUser: {
     env: 'CF_HPE_USER',
     type: 'string',
     required: true,
   },
 
-  CF_HPE_PASSWORD: {
+  hpePassword: {
     env: 'CF_HPE_PASSWORD',
     type: 'string',
     required: true,
   },
 
-  CF_HPE_SHARED_SPACE: {
+  hpeSharedSpace: {
     env: 'CF_HPE_SHARED_SPACE',
     type: 'string',
     required: true,
   },
 
-  CF_HPE_WORKSPACE: {
+  hpeWorkspace: {
     env: 'CF_HPE_WORKSPACE',
     type: 'string',
     required: true,

@@ -7,40 +7,45 @@ import { HpeApi, HpeApiPipeline } from 'lib/hpe-api';
 import config from './config';
 
 class BuildProgress {
-  constructor(buildLogRef) {
-    this.config = config;
-    this.buildLogRef = buildLogRef;
-    this.hpeApi = new HpeApi();
-    this.account = this.findAccount().shareReplay();
-    this.service = this.findService().shareReplay();
-    this.buildProgressEvents = this.getBuildProgressEvents();
+  static create(buildLogRef) {
+    return Rx.Observable.defer(() => {
+      const account = BuildProgress.findAccount(buildLogRef).shareReplay();
+      const service = BuildProgress.findService(buildLogRef).shareReplay();
+      const hpeSession = account.flatMap(BuildProgress.openHpeSession).shareReplay();
+      const hpeCiServer = Rx.Observable
+        .zip(
+          hpeSession,
+          account,
+          BuildProgress.createCiServer())
+        .shareReplay();
+    });
   }
 
-  monitorBuildProgressEvents() {
-
-  }
-
-  mapBuildToHpePipeline(build) {
-
-  }
-
-  mapBuildStepToHpePipelineStep(step) {
+  static monitorBuildProgressEvents() {
 
   }
 
-  updateHpePipelineStatus() {
+  static mapBuildToHpePipeline(build) {
 
   }
 
-  getBuildProgressEvents() {
-    return this.buildLogRef
+  static mapBuildStepToHpePipelineStep(step) {
+
+  }
+
+  static updateHpePipelineStatus() {
+
+  }
+
+  static getBuildProgressEvents(buildLogRef) {
+    return buildLogRef
       .child('steps')
       .rx_onValue()
       .map(snapthot => snapthot.val());
   }
 
-  findAccount() {
-    return this.buildLogRef
+  static findAccount(buildLogRef) {
+    return buildLogRef
       .rx_onceValue().map(snapshot => snapshot.val())
       .flatMap(buildLog => Rx.Observable
         .fromPromise(() => Account.findOne({ _id: objectId(buildLog.accountId) }))
@@ -49,8 +54,8 @@ class BuildProgress {
         .defaultIfEmpty(null));
   }
 
-  findService() {
-    return this.buildLogRef
+  static findService(buildLogRef) {
+    return buildLogRef
       .rx_onceValue().map(snapshot => snapshot.val())
       .flatMap(buildLog => Rx.Observable
         .fromPromise(() => Build.findOne({ progress_id: objectId(buildLog.id) }, 'serviceId'))
@@ -61,11 +66,15 @@ class BuildProgress {
         .defaultIfEmpty(null));
   }
 
-  createCiServer() {
-    this.account
-      .
-    const serverName = Util.format('Codefresh %d', _.now());
-    const serverInstanceId = _.kebabCase(serverName);
+  static openHpeSession(account) {
+    return HpeApi.connect();
+  }
+
+  static createCiServer(hpeSession, account) {
+    return HpeApi.createCiServer(hpeSession, {
+      instanceId: account.name,
+      name: account.name,
+    });
   }
 }
 
