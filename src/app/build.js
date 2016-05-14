@@ -39,11 +39,12 @@ function findService(buildLog) {
 }
 
 class Build {
-  constructor(ref, account, service, progressId) {
+  constructor(ref, id, name, account, service) {
     this.ref = ref;
+    this.id = id;
+    this.name = name;
     this.account = account;
     this.service = service;
-    this.progressId = progressId;
   }
 
   static builds() {
@@ -55,9 +56,10 @@ class Build {
           findService(snapshot.val()),
           (account, service) => new Build(
             snapshot.ref(),
+            snapshot.val().id,
+            service.name,
             account,
-            service,
-            snapshot.val().id)));
+            service)));
   }
 }
 
