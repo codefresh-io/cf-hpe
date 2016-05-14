@@ -128,7 +128,7 @@ describe('HpeApi', function () {
     const buildId = _.kebabCase(buildName);
 
     const stepStatus = {
-      stepId: 'root',
+      stepId: 'pipeline',
       serverInstanceId: testData.serverInstanceId,
       pipelineId: testData.pipelineId,
       buildId,
@@ -280,7 +280,7 @@ describe('HpeApi', function () {
 
   it('Should report pipeline status as "finished"', function (done) {
     const stepStatus = {
-      stepId: 'root',
+      stepId: 'pipeline',
       serverInstanceId: testData.serverInstanceId,
       pipelineId: testData.pipelineId,
       buildId: testData.rootJobBuildId,

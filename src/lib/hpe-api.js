@@ -139,7 +139,7 @@ class HpeApi {
 
   static reportPipelineStepStatus(session, stepStatus) {
     const jobCiId = HpeApiPipeline.jobId(stepStatus.pipelineId, stepStatus.stepId);
-    const rootJobCiId = HpeApiPipeline.jobId(stepStatus.pipelineId, 'root');
+    const rootJobCiId = HpeApiPipeline.jobId(stepStatus.pipelineId, 'pipeline');
 
     const data = {
       serverCiId: stepStatus.serverInstanceId,

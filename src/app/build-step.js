@@ -36,7 +36,7 @@ class BuildStep {
       .flatMap(() => build.ref.rx_onceValue())
       .map(snapshot => snapshot.val())
       .map((buildLog) => new BuildStep(
-        'root',
+        'pipeline',
         buildLog.data.started,
         0,
         'running',
@@ -49,7 +49,7 @@ class BuildStep {
       .flatMap(() => build.ref.rx_onceValue())
       .map(snapshot => snapshot.val())
       .map((buildLog) => new BuildStep(
-        'root',
+        'pipeline',
         buildLog.data.finished,
         buildLog.data.finished - buildLog.data.started,
         'finished',

@@ -3,36 +3,36 @@ import 'firebase-rx';
 import HpeApi from 'lib/hpe-api';
 
 function openHpeCiServer(session, account) {
-  const data = {
+  const ciServerData = {
     name: account.name,
     instanceId: account._id.toString(),
   };
 
   return HpeApi
-    .findCiServer(session, data.instanceId)
+    .findCiServer(session, ciServerData.instanceId)
     .flatMap(ciServer => {
       if (ciServer) {
         return Rx.Observable.just(ciServer);
       }
-      return HpeApi.createCiServer(session, data);
+      return HpeApi.createCiServer(session, ciServerData);
     })
     .map(ciServer => {
       return {
-        ...data,
+        ...ciServerData,
         id: ciServer.id,
       };
     });
 }
 
 function openHpePipeline(session, ciServer, service) {
-  const data = {
+  const pipelineData = {
     id: service._id.toString(),
     name: service.name,
     serverId: ciServer.id,
   };
 
   return HpeApi
-    .createPipeline(session, data)
+    .createPipeline(session, pipelineData)
     .catch(error => {
       if (error.statusCode !== 409) {
         return Rx.Observable.throw(error);
@@ -40,7 +40,7 @@ function openHpePipeline(session, ciServer, service) {
 
       return Rx.Observable.just();
     })
-    .map(() => data);
+    .map(() => pipelineData);
 }
 
 function prepareBuildStepStatusTemplate(buildLog, service, hpeCiServer, hpePipeline) {
@@ -76,9 +76,10 @@ function mapBuildLogStepToPipelineStep(name) {
 }
 
 class HpeBuildSession {
-  constructor(build, session) {
+  constructor(build, session, pipeline) {
     this.build = build;
     this.session = session;
+    this.pipeline = pipeline;
   }
 
   static openSession(build) {
@@ -88,6 +89,21 @@ class HpeBuildSession {
         openHpeCiServer(session, build.account)
           .flatMap(ciServer => openHpePipeline(session, ciServer, build.service))
           .map(pipeline => new HpeBuildSession(build, session, pipeline)));
+  }
+
+  static reportStepStatus(buildSession, buildStep) {
+    const stepStatus = {
+      stepId: buildStep.stepId,
+      serverInstanceId: buildSession.pipeline.serverId,
+      pipelineId: buildSession.pipeline.id,
+      buildId: buildSession.build.progressId,
+      startTime: buildStep.startTime,
+      duration: buildStep.duration,
+      status: buildStep.status,
+      result: buildStep.result,
+    };
+
+    return Rx.Observable.just(stepStatus);
   }
 }
 
