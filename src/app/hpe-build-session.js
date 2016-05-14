@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import Rx from 'rx';
 import 'firebase-rx';
 import HpeApi from 'lib/hpe-api';
@@ -76,7 +77,7 @@ class HpeBuildSession {
       result: buildStep.result,
     };
 
-    if (buildStep.duration) {
+    if (_.isNumber(buildStep.duration)) {
       stepStatus.duration = buildStep.duration * 1000;
     }
 
