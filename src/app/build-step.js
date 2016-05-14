@@ -22,6 +22,18 @@ function mapBuildLogStepToPipelineStep(name) {
   }
 }
 
+function mapBuildResult(buildLog) {
+  if (buildLog.status === 'success') {
+    return 'success';
+  }
+
+  if (buildLog.status === 'terminating') {
+    return 'aborted';
+  }
+
+  return 'failure';
+}
+
 class BuildStep {
   constructor(stepId, startTime, duration, status, result) {
     this.stepId = stepId;
@@ -52,12 +64,13 @@ class BuildStep {
       .flatMap(() => build.ref.rx_onceValue())
       .map(snapshot => snapshot.val())
       .doOnNext(() => logger.info('Build finished. build (%s)', build.id))
-      .map((buildLog) => new BuildStep(
-        'pipeline',
-        buildLog.data.finished,
-        buildLog.data.finished - buildLog.data.started,
-        'finished',
-        'success'));
+      .map((buildLog) =>
+        new BuildStep(
+          'pipeline',
+          buildLog.data.finished,
+          buildLog.data.finished - buildLog.data.started,
+          'finished',
+          mapBuildResult(buildLog)));
 
     return Rx.Observable.concat(
       buildRunningStepObservable,
