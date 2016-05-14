@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import Rx from 'rx';
 import 'firebase-rx';
 import Firebase from 'firebase';
@@ -75,7 +76,10 @@ class Build {
 
   static builds() {
     return openBuildLogsRef()
-      .flatMap(buildLogsRef => buildLogsRef.rx_onChildAdded())
+      .flatMap(buildLogsRef => buildLogsRef
+        .orderByChild('data/started')
+        .startAt(_.now() / 1000)
+        .rx_onChildAdded())
       .doOnNext(snapshot => logger.info('Receiving build log. build (%s)', snapshot.key()))
       .flatMap(snapshot =>
         Rx.Observable.zip(
