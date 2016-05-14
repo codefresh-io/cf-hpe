@@ -4,7 +4,7 @@ import Firebase from 'firebase';
 import { Account, objectId } from './model';
 import config from './config';
 
-function getBuildLogsRef() {
+function openBuildLogsRef() {
   return Rx.Observable
     .start(() => new Firebase(config.firebaseUrl))
     .flatMap(rootRef => rootRef.rx_authWithSecretToken(
@@ -12,12 +12,6 @@ function getBuildLogsRef() {
       'hpe-service',
       { admin: true }))
     .map(rootRef => rootRef.child(config.firebaseBuildLogsPath));
-}
-
-function getStartedBuildLogs(buildLogsRef) {
-  return buildLogsRef
-    .limitToFirst(10)
-    .rx_onChildAdded();
 }
 
 function findAccount(accountId) {
@@ -30,22 +24,52 @@ function isHpeIntegrationAccount(account) {
   return true || account.integrations.hpe && account.integrations.hpe.active;
 }
 
-function filterIntegrationBuildLogs(buildLog) {
-  return findAccount(buildLog.val().accountId)
-    .filter(account => account && isHpeIntegrationAccount(account))
-    .map(() => buildLog);
+function createBuildStepStatus(stepId, startTime, duration, status, result) {
+  return {
+    stepId,
+    startTime,
+    duration,
+    status,
+    result,
+  };
 }
 
 class RunningBuild {
-  static getRunningBuilds() {
-    return Rx.Observable.defer(() => {
-      const buildLogsRef = getBuildLogsRef().shareReplay();
-      const startedBuildLogs = buildLogsRef.flatMap(getStartedBuildLogs);
-      const integrationBuildLogs = startedBuildLogs
-        .flatMap(filterIntegrationBuildLogs)
-        .map(buildLog => buildLog.ref());
-      return integrationBuildLogs;
-    });
+  static runningBuilds() {
+    return openBuildLogsRef()
+      .flatMap(buildLogsRef => buildLogsRef.limitToFirst(10).rx_onChildAdded())
+      .flatMap(buildLog => findAccount(buildLog.val().accountId)
+        .filter(account => account && isHpeIntegrationAccount(account))
+        .map(() => buildLog))
+      .map(buildLog => RunningBuild.runningBuildSteps(buildLog.ref()));
+  }
+
+  static runningBuildSteps(buildLogRef) {
+    const buildRunningStepObservable = buildLogRef.child('data/started')
+      .rx_onValue()
+      .filter(snapshot => snapshot.exists())
+      .take(1)
+      .flatMap(() => buildLogRef.rx_onceValue())
+      .map((buildLog) => createBuildStepStatus(
+        'root',
+        buildLog.val().data.started,
+        0,
+        'running',
+        'unavailable'));
+
+    const buildFinishedStepObservable = buildLogRef.child('data/finished')
+      .rx_onValue()
+      .filter(snapshot => snapshot.exists())
+      .take(1)
+      .flatMap(() => buildLogRef.rx_onceValue())
+      .map((buildLog) => createBuildStepStatus(
+        'root',
+        buildLog.val().data.finished,
+        buildLog.val().data.finished - buildLog.val().data.started,
+        'finished',
+        'success'));
+
+    return Rx.Observable.concat(buildRunningStepObservable, buildFinishedStepObservable);
   }
 }
 

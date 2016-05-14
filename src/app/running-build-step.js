@@ -5,24 +5,20 @@ import Firebase from 'firebase';
 import { Account, Service, Build, objectId } from './model';
 import { HpeApi, HpeApiPipeline } from 'lib/hpe-api';
 
-function findAccount(buildLogRef) {
-  return buildLogRef
-    .rx_onceValue().map(snapshot => snapshot.val())
-    .flatMap(buildLog => Rx.Observable
-      .fromPromise(() => Account.findOne({ _id: objectId(buildLog.accountId) }))
-      .map(account => account && account.toObject()));
+function findAccount(buildLog) {
+  return Rx.Observable
+    .fromPromise(() => Account.findOne({ _id: objectId(buildLog.accountId) }))
+    .map(account => account && account.toObject());
 }
 
-function findService(buildLogRef) {
-  return buildLogRef
-    .rx_onceValue().map(snapshot => snapshot.val())
-    .flatMap(buildLog => Rx.Observable
-      .fromPromise(() => Build.findOne({ progress_id: objectId(buildLog.id) }, 'serviceId'))
-      .takeWhile(progress => progress)
-      .flatMap(progress => Service.findOne({ _id: objectId(progress.get('serviceId')) }))
-      .takeWhile(service => service)
-      .map(service => service.toObject())
-      .defaultIfEmpty(null));
+function findService(buildLog) {
+  return Rx.Observable
+    .fromPromise(() => Build.findOne({ progress_id: objectId(buildLog.id) }, 'serviceId'))
+    .takeWhile(progress => progress)
+    .flatMap(progress => Service.findOne({ _id: objectId(progress.get('serviceId')) }))
+    .takeWhile(service => service)
+    .map(service => service.toObject())
+    .defaultIfEmpty(null);
 }
 
 function openHpeSession(account) {
@@ -53,48 +49,74 @@ function openHpePipeline(hpeSession, ciServer, service) {
   return HpeApi.createPipeline(hpeSession, data);
 }
 
+function prepareBuildStepStatusTemplate(buildLog, service, hpeCiServer, hpePipeline) {
+  return {
+    stepId: null,
+    serverInstanceId: hpeCiServer.id,
+    pipelineId: hpePipeline.id,
+    buildId: buildLog.id,
+    buildName: service.name,
+    startTime: null,
+    duration: null,
+    status: null,
+    result: null,
+  };
+}
+
 function mapBuildLogStepToPipelineStep(name) {
-  if(name === 'Initializing Process') {
+  if (name === 'Initializing Process') {
     return 'clone-repository';
   }
 
-  if(name === 'Building Docker Image') {
+  if (name === 'Building Docker Image') {
     return 'build-dockerfile';
   }
 
-  if(name === 'Saving Image to Local Storage') {
+  if (name === 'Saving Image to Local Storage') {
     return 'push-docker-registry';
   }
 
-  if(name === 'Running Unit Tests') {
+  if (name === 'Running Unit Tests') {
     return 'unit-test-script';
   }
 }
 
-
-function processBuildLogSteps(buildLogRef) {
-  const buildLogStepsRef = buildLogRef.child('steps');
-  const buildLogStepsEvents = Rx.Observable.merge(
-    buildLogStepsRef.rx_onChildAdded(),
-    buildLogStepsRef.rx_onChildChanged());
-
-  return buildLogStepsEvents
-    .map(snapshot => snapshot.val());
-}
-
-
 class RunningBuildStep {
   static getRunningBuildSteps(buildLogRef) {
-    return Rx.Observable.defer(() => {
-      const account = findAccount(buildLogRef).shareReplay();
-      const service = findService(buildLogRef).shareReplay();
-      const hpeSession = account.flatMap(openHpeSession).shareReplay();
-      const hpeCiServer = Rx.Observable.zip(hpeSession, account, openHpeCiServer).shareReplay();
-      const hpePipeline = Rx.Observable.zip(hpeSession, account, openHpePipeline).shareReplay();
+    const buildLogStepsRef = buildLogRef.child('steps');
+    const buildLogObservable = buildLogRef.rx_onceValue().map(snapshot => snapshot.val());
+    const accountObservable = buildLogObservable.flatMap(findAccount).shareReplay();
+    const serviceObservable = buildLogObservable.flatMap(findService).shareReplay();
+    const hpeSessionObservable = accountObservable.flatMap(openHpeSession).shareReplay();
 
-      return processBuildLogSteps(buildLogRef);
+    const hpeCiServerObservable = Rx.Observable
+      .zip(hpeSessionObservable, accountObservable, openHpeCiServer)
+      .shareReplay();
 
-    });
+    const hpePipelineObservable = Rx.Observable
+      .zip(hpeSessionObservable, accountObservable, openHpePipeline)
+      .shareReplay();
+
+
+    const buildStepStatusTemplate = Rx.Observable
+      .zip(
+        buildLogRefObservable,
+        serviceObservable,
+        hpeCiServerObservable,
+        hpePipelineObservable,
+        prepareBuildStepStatusTemplate)
+      .shareReplay();
+
+    const buildLogStepsEvents = Rx.Observable.merge(
+      buildLogStepsRef.rx_onChildAdded(),
+      buildLogStepsRef.rx_onChildChanged());
+
+    return buildLogStepsEvents
+      .map(snapshot => snapshot.val())
+      .mapBuildLogStepToPipelineStep();
+
+    
+
   }
 }
 

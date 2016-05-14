@@ -11,9 +11,9 @@ describe('RunningBuild', function () {
   this.slow(2000);
   this.timeout(30000);
 
-  it('Should receive running build events', function (done) {
+  it('Should receive running builds', function (done) {
     RunningBuild
-      .getRunningBuilds()
+      .runningBuilds()
       .take(1)
       .doOnNext(buildLogRef => {
         done();
@@ -22,18 +22,13 @@ describe('RunningBuild', function () {
       .subscribe();
   });
 
-  it('Should receive runnung build step events', function (done) {
+  it('Should receive running build steps', function (done) {
     RunningBuild
-      .getRunningBuilds()
+      .runningBuilds()
       .take(1)
-      .doOnNext(buildLogRef => {
-        RunningBuildStep.
-          getRunningBuildSteps(buildLogRef)
-          .doOnError(error => done(error))
-          .doOnNext(buildStep => {
-            done();
-          })
-          .subscribe();
+      .flatMap(runningBuildSteps => runningBuildSteps)
+      .doOnNext(runningBuildStep => {
+        
       })
       .doOnError(error => done(error))
       .subscribe();
