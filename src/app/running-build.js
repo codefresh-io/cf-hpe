@@ -35,37 +35,43 @@ function createBuildStepStatus(stepId, startTime, duration, status, result) {
 }
 
 class RunningBuild {
-  static runningBuilds() {
+  constructor(buildLogRef) {
+    this.ref = buildLogRef;
+  }
+
+  static builds() {
     return openBuildLogsRef()
       .flatMap(buildLogsRef => buildLogsRef.limitToFirst(10).rx_onChildAdded())
       .flatMap(buildLog => findAccount(buildLog.val().accountId)
         .filter(account => account && isHpeIntegrationAccount(account))
         .map(() => buildLog))
-      .map(buildLog => RunningBuild.runningBuildSteps(buildLog.ref()));
+      .map(buildLog => new RunningBuild(buildLog.ref()));
   }
 
-  static runningBuildSteps(buildLogRef) {
-    const buildRunningStepObservable = buildLogRef.child('data/started')
+  static buildSteps(runningBuild) {
+    const buildRunningStepObservable = runningBuild.ref.child('data/started')
       .rx_onValue()
       .filter(snapshot => snapshot.exists())
       .take(1)
-      .flatMap(() => buildLogRef.rx_onceValue())
+      .flatMap(() => runningBuild.ref.rx_onceValue())
+      .map(snapshot => snapshot.val())
       .map((buildLog) => createBuildStepStatus(
         'root',
-        buildLog.val().data.started,
+        buildLog.data.started,
         0,
         'running',
         'unavailable'));
 
-    const buildFinishedStepObservable = buildLogRef.child('data/finished')
+    const buildFinishedStepObservable = runningBuild.ref.child('data/finished')
       .rx_onValue()
       .filter(snapshot => snapshot.exists())
       .take(1)
-      .flatMap(() => buildLogRef.rx_onceValue())
+      .flatMap(() => runningBuild.ref.rx_onceValue())
+      .map(snapshot => snapshot.val())
       .map((buildLog) => createBuildStepStatus(
         'root',
-        buildLog.val().data.finished,
-        buildLog.val().data.finished - buildLog.val().data.started,
+        buildLog.data.finished,
+        buildLog.data.finished - buildLog.data.started,
         'finished',
         'success'));
 

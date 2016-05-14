@@ -13,9 +13,9 @@ describe('RunningBuild', function () {
 
   it('Should receive running builds', function (done) {
     RunningBuild
-      .runningBuilds()
+      .builds()
       .take(1)
-      .doOnNext(buildLogRef => {
+      .doOnNext(build => {
         done();
       })
       .doOnError(error => done(error))
@@ -24,11 +24,11 @@ describe('RunningBuild', function () {
 
   it('Should receive running build steps', function (done) {
     RunningBuild
-      .runningBuilds()
+      .builds()
       .take(1)
-      .flatMap(runningBuildSteps => runningBuildSteps)
-      .doOnNext(runningBuildStep => {
-        
+      .flatMap(build => RunningBuild.buildSteps(build))
+      .doOnNext(buildStep => {
+
       })
       .doOnError(error => done(error))
       .subscribe();
