@@ -13,4 +13,3 @@ export default {
   Service,
   Build,
 };
-sad
