@@ -1,38 +1,39 @@
 import Rx from 'rx';
 import 'firebase-rx';
 import HpeApi from 'lib/hpe-api';
+import Logger from 'lib/logger';
 
-function openHpeCiServer(session, account) {
+const logger = Logger.getLogger('build-step');
+
+function openHpeCiServer(session, build) {
   const ciServerData = {
-    name: account.name,
-    instanceId: account._id.toString(),
+    name: build.account.name,
+    instanceId: build.account._id.toString(),
   };
 
-  return HpeApi
-    .findCiServer(session, ciServerData.instanceId)
+  return HpeApi.findCiServer(session, ciServerData.instanceId)
     .flatMap(ciServer => {
       if (ciServer) {
         return Rx.Observable.just(ciServer);
       }
+
+      logger.info('Create hpe ci server. build (%s)', build.id);
       return HpeApi.createCiServer(session, ciServerData);
     })
-    .map(ciServer => {
-      return {
-        ...ciServerData,
-        id: ciServer.id,
-      };
-    });
+    .map(ciServer => ({
+      ...ciServerData,
+      id: ciServer.id,
+    }));
 }
 
-function openHpePipeline(session, ciServer, service) {
+function openHpePipeline(session, ciServer, build) {
   const pipelineData = {
-    id: service._id.toString(),
-    name: service.name,
+    id: build.service._id.toString(),
+    name: build.service.name,
     serverId: ciServer.id,
   };
 
-  return HpeApi
-    .createPipeline(session, pipelineData)
+  return HpeApi.createPipeline(session, pipelineData)
     .catch(error => {
       if (error.statusCode !== 409) {
         return Rx.Observable.throw(error);
@@ -40,30 +41,10 @@ function openHpePipeline(session, ciServer, service) {
 
       return Rx.Observable.just();
     })
-    .map(() => {
-      return {
-        ...pipelineData,
-        serverInstanceId: ciServer.instanceId,
-      };
-    });
-}
-
-function mapBuildLogStepToPipelineStep(name) {
-  if (name === 'Initializing Process') {
-    return 'clone-repository';
-  }
-
-  if (name === 'Building Docker Image') {
-    return 'build-dockerfile';
-  }
-
-  if (name === 'Saving Image to Local Storage') {
-    return 'push-docker-registry';
-  }
-
-  if (name === 'Running Unit Tests') {
-    return 'unit-test-script';
-  }
+    .map(() => ({
+      ...pipelineData,
+      serverInstanceId: ciServer.instanceId,
+    }));
 }
 
 class HpeBuildSession {
@@ -74,11 +55,12 @@ class HpeBuildSession {
   }
 
   static openSession(build) {
-    return HpeApi
-      .connect()
+    return Rx.Observable
+      .start(() => logger.info('Open hpe build session. build (%s)', build.id))
+      .flatMap(HpeApi.connect())
       .flatMap(session =>
-        openHpeCiServer(session, build.account)
-          .flatMap(ciServer => openHpePipeline(session, ciServer, build.service))
+        openHpeCiServer(session, build)
+          .flatMap(ciServer => openHpePipeline(session, ciServer, build))
           .map(pipeline => new HpeBuildSession(build, session, pipeline)));
   }
 
@@ -87,15 +69,15 @@ class HpeBuildSession {
       stepId: buildStep.stepId,
       serverInstanceId: buildSession.pipeline.serverInstanceId,
       pipelineId: buildSession.pipeline.id,
-      buildId: buildSession.build.progressId,
-      buildName: buildSession.build.progressId,
-      startTime: buildStep.startTime,
+      buildId: buildSession.build.id,
+      buildName: buildSession.build.name,
+      startTime: buildStep.startTime * 1000,
       status: buildStep.status,
       result: buildStep.result,
     };
 
     if (buildStep.duration) {
-      stepStatus.duration = buildStep.duration;
+      stepStatus.duration = buildStep.duration * 1000;
     }
 
     return HpeApi.reportPipelineStepStatus(buildSession.session, stepStatus);
