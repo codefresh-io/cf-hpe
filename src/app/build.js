@@ -1,7 +1,7 @@
 import Rx from 'rx';
 import 'firebase-rx';
 import Firebase from 'firebase';
-import { Account, Service, Build, objectId } from './model';
+import Model from './model';
 import config from './config';
 
 function openBuildLogsRef() {
@@ -20,7 +20,7 @@ function isHpeIntegrationAccount(account) {
 
 function findAccount(buildLog) {
   return Rx.Observable
-    .fromPromise(() => Account.findOne({ _id: objectId(buildLog.accountId) }))
+    .fromPromise(() => Model.Account.findOne({ _id: Model.objectId(buildLog.accountId) }))
     .filter(account => account)
     .map(account => account.toObject())
     .filter(account => isHpeIntegrationAccount(account));
@@ -28,14 +28,17 @@ function findAccount(buildLog) {
 
 function findService(buildLog) {
   return Rx.Observable
-    .fromPromise(() => Build.findOne({ progress_id: objectId(buildLog.id) }, 'serviceId'))
+    .fromPromise(() => Model.Build.findOne(
+      { progress_id: Model.objectId(buildLog.id) },
+      'serviceId'))
     .filter(progress => progress)
-    .flatMap(progress => Service.findOne({ _id: objectId(progress.get('serviceId')) }))
+    .flatMap(progress => Model.Service.findOne(
+      { _id: Model.objectId(progress.get('serviceId')) }))
     .filter(service => service)
     .map(service => service.toObject());
 }
 
-class RunningBuild {
+class Build {
   constructor(ref, account, service, progressId) {
     this.ref = ref;
     this.account = account;
@@ -50,7 +53,7 @@ class RunningBuild {
         Rx.Observable.zip(
           findAccount(snapshot.val()),
           findService(snapshot.val()),
-          (account, service) => new RunningBuild(
+          (account, service) => new Build(
             snapshot.ref(),
             account,
             service,
@@ -58,4 +61,4 @@ class RunningBuild {
   }
 }
 
-export default RunningBuild;
+export default Build;

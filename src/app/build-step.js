@@ -19,7 +19,7 @@ function mapBuildLogStepToPipelineStep(name) {
   }
 }
 
-class RunningBuildStep {
+class BuildStep {
   constructor(stepId, startTime, duration, status, result) {
     this.stepId = stepId;
     this.startTime = startTime;
@@ -28,27 +28,27 @@ class RunningBuildStep {
     this.result = result;
   }
 
-  static buildSteps(runningBuild) {
-    const buildRunningStepObservable = runningBuild.ref.child('data/started')
+  static steps(build) {
+    const buildRunningStepObservable = build.ref.child('data/started')
       .rx_onValue()
       .filter(snapshot => snapshot.exists())
       .take(1)
-      .flatMap(() => runningBuild.ref.rx_onceValue())
+      .flatMap(() => build.ref.rx_onceValue())
       .map(snapshot => snapshot.val())
-      .map((buildLog) => new RunningBuildStep(
+      .map((buildLog) => new BuildStep(
         'root',
         buildLog.data.started,
         0,
         'running',
         'unavailable'));
 
-    const buildFinishedStepObservable = runningBuild.ref.child('data/finished')
+    const buildFinishedStepObservable = build.ref.child('data/finished')
       .rx_onValue()
       .filter(snapshot => snapshot.exists())
       .take(1)
-      .flatMap(() => runningBuild.ref.rx_onceValue())
+      .flatMap(() => build.ref.rx_onceValue())
       .map(snapshot => snapshot.val())
-      .map((buildLog) => new RunningBuildStep(
+      .map((buildLog) => new BuildStep(
         'root',
         buildLog.data.finished,
         buildLog.data.finished - buildLog.data.started,
@@ -59,4 +59,4 @@ class RunningBuildStep {
   }
 }
 
-export default RunningBuildStep;
+export default BuildStep;

@@ -1,7 +1,7 @@
 class HpeApiError extends Error {
-  constructor(errorCode, message) {
+  constructor(statusCode, message) {
     super(message);
-    this.errorCode = errorCode;
+    this.statusCode = statusCode;
   }
 }
 

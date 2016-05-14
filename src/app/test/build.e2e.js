@@ -4,15 +4,15 @@
 /* eslint-disable no-unused-expressions */
 import './config.env';
 import { expect } from 'chai';
-import RunningBuild from 'app/running-build';
-import RunningBuildStep from 'app/running-build-step';
+import Build from 'app/build';
+import BuildStep from 'app/build-step';
 
-describe('RunningBuild', function () {
+describe('Build', function () {
   this.slow(2000);
   this.timeout(30000);
 
-  it('Should receive running builds', function (done) {
-    RunningBuild
+  it('Should output running builds', function (done) {
+    Build
       .builds()
       .take(1)
       .doOnNext(build => {
@@ -22,11 +22,11 @@ describe('RunningBuild', function () {
       .subscribe();
   });
 
-  it('Should receive running build steps', function (done) {
-    RunningBuild
+  it('Should output running build steps', function (done) {
+    Build
       .builds()
       .take(1)
-      .flatMap(build => RunningBuildStep.buildSteps(build))
+      .flatMap(build => BuildStep.steps(build))
       .doOnNext(buildStep => {
 
       })
