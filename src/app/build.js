@@ -2,11 +2,15 @@ import Rx from 'rx';
 import 'firebase-rx';
 import Firebase from 'firebase';
 import Model from './model';
+import Logger from 'lib/logger';
 import config from './config';
+
+const logger = Logger.getLogger('build');
 
 function openBuildLogsRef() {
   return Rx.Observable
     .start(() => new Firebase(config.firebaseUrl))
+    .doOnNext(rootRef => logger.info('Open build logs ref. url (%s)', rootRef.toString()))
     .flatMap(rootRef => rootRef.rx_authWithSecretToken(
       config.firebaseSecret,
       'hpe-service',
@@ -21,7 +25,14 @@ function isHpeIntegrationAccount(account) {
 function findAccount(buildLog) {
   return Rx.Observable
     .fromPromise(() => Model.Account.findOne({ _id: Model.objectId(buildLog.accountId) }))
-    .filter(account => account)
+    .filter(account => {
+      if (!account) {
+        logger.warn('Build account not found. build (%s)', buildLog.id);
+        return false;
+      }
+
+      return true;
+    })
     .map(account => account.toObject())
     .filter(account => isHpeIntegrationAccount(account));
 }
@@ -31,10 +42,24 @@ function findService(buildLog) {
     .fromPromise(() => Model.Build.findOne(
       { progress_id: Model.objectId(buildLog.id) },
       'serviceId'))
-    .filter(progress => progress)
+    .filter(progress => {
+      if (!progress) {
+        logger.warn('Build progress not found. build (%s)', buildLog.id);
+        return false;
+      }
+
+      return true;
+    })
     .flatMap(progress => Model.Service.findOne(
       { _id: Model.objectId(progress.get('serviceId')) }))
-    .filter(service => service)
+    .filter(service => {
+      if (!service) {
+        logger.warn('Build service not found. build (%s)', buildLog.id);
+        return false;
+      }
+
+      return true;
+    })
     .map(service => service.toObject());
 }
 
@@ -49,7 +74,8 @@ class Build {
 
   static builds() {
     return openBuildLogsRef()
-      .flatMap(buildLogsRef => buildLogsRef.limitToFirst(10).rx_onChildAdded())
+      .flatMap(buildLogsRef => buildLogsRef.rx_onChildAdded())
+      .doOnNext(snapshot => logger.info('Receiving build log. build (%s)', snapshot.val().id))
       .flatMap(snapshot =>
         Rx.Observable.zip(
           findAccount(snapshot.val()),

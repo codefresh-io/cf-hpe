@@ -1,11 +1,14 @@
 import Rx from 'rx';
 import 'firebase-rx';
 import HpeApi from 'lib/hpe-api';
+import Logger from 'lib/logger';
 
-function openHpeCiServer(session, account) {
+const logger = Logger.getLogger('build-step');
+
+function openHpeCiServer(session, build) {
   const ciServerData = {
-    name: account.name,
-    instanceId: account._id.toString(),
+    name: build.account.name,
+    instanceId: build.account._id.toString(),
   };
 
   return HpeApi.findCiServer(session, ciServerData.instanceId)
@@ -13,6 +16,8 @@ function openHpeCiServer(session, account) {
       if (ciServer) {
         return Rx.Observable.just(ciServer);
       }
+
+      logger.info('Create hpe ci server. build (%s)', build.id);
       return HpeApi.createCiServer(session, ciServerData);
     })
     .map(ciServer => ({
@@ -21,10 +26,10 @@ function openHpeCiServer(session, account) {
     }));
 }
 
-function openHpePipeline(session, ciServer, service) {
+function openHpePipeline(session, ciServer, build) {
   const pipelineData = {
-    id: service._id.toString(),
-    name: service.name,
+    id: build.service._id.toString(),
+    name: build.service.name,
     serverId: ciServer.id,
   };
 
@@ -50,10 +55,12 @@ class HpeBuildSession {
   }
 
   static openSession(build) {
-    return HpeApi.connect()
+    return Rx.Observable
+      .start(() => logger.info('Open hpe build session. build (%s)', build.id))
+      .flatMap(HpeApi.connect())
       .flatMap(session =>
-        openHpeCiServer(session, build.account)
-          .flatMap(ciServer => openHpePipeline(session, ciServer, build.service))
+        openHpeCiServer(session, build)
+          .flatMap(ciServer => openHpePipeline(session, ciServer, build))
           .map(pipeline => new HpeBuildSession(build, session, pipeline)));
   }
 

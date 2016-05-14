@@ -1,5 +1,8 @@
 import Rx from 'rx';
 import 'firebase-rx';
+import Logger from 'lib/logger';
+
+const logger = Logger.getLogger('build-step');
 
 function mapBuildLogStepToPipelineStep(name) {
   if (name === 'Initializing Process') {
@@ -48,6 +51,7 @@ class BuildStep {
       .take(1)
       .flatMap(() => build.ref.rx_onceValue())
       .map(snapshot => snapshot.val())
+      .doOnNext(snapshot => logger.info('Build finished. build (%s)', build.id))
       .map((buildLog) => new BuildStep(
         'pipeline',
         buildLog.data.finished,
@@ -55,7 +59,9 @@ class BuildStep {
         'finished',
         'success'));
 
-    return Rx.Observable.concat(buildRunningStepObservable, buildFinishedStepObservable);
+    return Rx.Observable.concat(
+      buildRunningStepObservable,
+      buildFinishedStepObservable);
   }
 }
 
