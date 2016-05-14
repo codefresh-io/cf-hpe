@@ -51,7 +51,7 @@ class BuildStep {
       .take(1)
       .flatMap(() => build.ref.rx_onceValue())
       .map(snapshot => snapshot.val())
-      .doOnNext(snapshot => logger.info('Build finished. build (%s)', build.id))
+      .doOnNext(() => logger.info('Build finished. build (%s)', build.id))
       .map((buildLog) => new BuildStep(
         'pipeline',
         buildLog.data.finished,
