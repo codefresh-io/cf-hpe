@@ -22,12 +22,13 @@ function isHpeIntegrationAccount(account) {
   return true || account.integrations.hpe && account.integrations.hpe.active;
 }
 
-function findAccount(buildLog) {
+function findAccount(buildLogSnapshot) {
   return Rx.Observable
-    .fromPromise(() => Model.Account.findOne({ _id: Model.objectId(buildLog.accountId) }))
+    .fromPromise(() => Model.Account.findOne(
+      { _id: Model.objectId(buildLogSnapshot.val().accountId) }))
     .filter(account => {
       if (!account) {
-        logger.warn('Build account not found. build (%s)', buildLog.id);
+        logger.warn('Build account not found. build (%s)', buildLogSnapshot.key());
         return false;
       }
 
@@ -37,14 +38,14 @@ function findAccount(buildLog) {
     .filter(account => isHpeIntegrationAccount(account));
 }
 
-function findService(buildLog) {
+function findService(buildLogSnapshot) {
   return Rx.Observable
     .fromPromise(() => Model.Build.findOne(
-      { progress_id: Model.objectId(buildLog.id) },
+      { progress_id: Model.objectId(buildLogSnapshot.key()) },
       'serviceId'))
     .filter(progress => {
       if (!progress) {
-        logger.warn('Build progress not found. build (%s)', buildLog.id);
+        logger.warn('Build progress not found. build (%s)', buildLogSnapshot.key());
         return false;
       }
 
@@ -54,7 +55,7 @@ function findService(buildLog) {
       { _id: Model.objectId(progress.get('serviceId')) }))
     .filter(service => {
       if (!service) {
-        logger.warn('Build service not found. build (%s)', buildLog.id);
+        logger.warn('Build service not found. build (%s)', buildLogSnapshot.key());
         return false;
       }
 
@@ -75,14 +76,14 @@ class Build {
   static builds() {
     return openBuildLogsRef()
       .flatMap(buildLogsRef => buildLogsRef.rx_onChildAdded())
-      .doOnNext(snapshot => logger.info('Receiving build log. build (%s)', snapshot.val().id))
+      .doOnNext(snapshot => logger.info('Receiving build log. build (%s)', snapshot.key()))
       .flatMap(snapshot =>
         Rx.Observable.zip(
-          findAccount(snapshot.val()),
-          findService(snapshot.val()),
+          findAccount(snapshot),
+          findService(snapshot),
           (account, service) => new Build(
             snapshot.ref(),
-            snapshot.val().id,
+            snapshot.key(),
             service.name,
             account,
             service)));
