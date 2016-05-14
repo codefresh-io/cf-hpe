@@ -38,7 +38,7 @@ class BuildStep {
       .map((buildLog) => new BuildStep(
         'pipeline',
         buildLog.data.started,
-        0,
+        null,
         'running',
         'unavailable'));
 

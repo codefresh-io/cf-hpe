@@ -40,21 +40,12 @@ function openHpePipeline(session, ciServer, service) {
 
       return Rx.Observable.just();
     })
-    .map(() => pipelineData);
-}
-
-function prepareBuildStepStatusTemplate(buildLog, service, hpeCiServer, hpePipeline) {
-  return {
-    stepId: null,
-    serverInstanceId: hpeCiServer.id,
-    pipelineId: hpePipeline.id,
-    buildId: buildLog.id,
-    buildName: service.name,
-    startTime: null,
-    duration: null,
-    status: null,
-    result: null,
-  };
+    .map(() => {
+      return {
+        ...pipelineData,
+        serverInstanceId: ciServer.instanceId,
+      };
+    });
 }
 
 function mapBuildLogStepToPipelineStep(name) {
@@ -94,16 +85,20 @@ class HpeBuildSession {
   static reportStepStatus(buildSession, buildStep) {
     const stepStatus = {
       stepId: buildStep.stepId,
-      serverInstanceId: buildSession.pipeline.serverId,
+      serverInstanceId: buildSession.pipeline.serverInstanceId,
       pipelineId: buildSession.pipeline.id,
       buildId: buildSession.build.progressId,
+      buildName: buildSession.build.progressId,
       startTime: buildStep.startTime,
-      duration: buildStep.duration,
       status: buildStep.status,
       result: buildStep.result,
     };
 
-    return Rx.Observable.just(stepStatus);
+    if (buildStep.duration) {
+      stepStatus.duration = buildStep.duration;
+    }
+
+    return HpeApi.reportPipelineStepStatus(buildSession.session, stepStatus);
   }
 }
 
