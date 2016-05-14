@@ -3,7 +3,7 @@ import util from 'util';
 
 const _pipelineSteps = [
   {
-    id: 'root',
+    id: 'pipeline',
     name: 'Codefresh Build',
   },
   {

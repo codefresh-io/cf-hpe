@@ -7,7 +7,7 @@ const Account = mongoose.model('account', new Schema());
 const Service = mongoose.model('service', new Schema());
 const Build = mongoose.model('build', new Schema());
 
-export {
+export default {
   objectId,
   Account,
   Service,
