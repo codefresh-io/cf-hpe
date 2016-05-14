@@ -1,7 +1,7 @@
 import Rx from 'rx';
 import 'firebase-rx';
 import Firebase from 'firebase';
-import { Account, objectId } from './model';
+import { Account, Service, Build, objectId } from './model';
 import config from './config';
 
 function openBuildLogsRef() {
@@ -14,68 +14,47 @@ function openBuildLogsRef() {
     .map(rootRef => rootRef.child(config.firebaseBuildLogsPath));
 }
 
-function findAccount(accountId) {
-  return Rx.Observable
-    .fromPromise(() => Account.findOne({ _id: objectId(accountId) }))
-    .map(account => account && account.toObject());
-}
-
 function isHpeIntegrationAccount(account) {
   return true || account.integrations.hpe && account.integrations.hpe.active;
 }
 
-function createBuildStepStatus(stepId, startTime, duration, status, result) {
-  return {
-    stepId,
-    startTime,
-    duration,
-    status,
-    result,
-  };
+function findAccount(buildLog) {
+  return Rx.Observable
+    .fromPromise(() => Account.findOne({ _id: objectId(buildLog.accountId) }))
+    .filter(account => account)
+    .map(account => account.toObject())
+    .filter(account => isHpeIntegrationAccount(account));
+}
+
+function findService(buildLog) {
+  return Rx.Observable
+    .fromPromise(() => Build.findOne({ progress_id: objectId(buildLog.id) }, 'serviceId'))
+    .filter(progress => progress)
+    .flatMap(progress => Service.findOne({ _id: objectId(progress.get('serviceId')) }))
+    .filter(service => service)
+    .map(service => service.toObject());
 }
 
 class RunningBuild {
-  constructor(buildLogRef) {
-    this.ref = buildLogRef;
+  constructor(ref, account, service, progressId) {
+    this.ref = ref;
+    this.account = account;
+    this.service = service;
+    this.progressId = progressId;
   }
 
   static builds() {
     return openBuildLogsRef()
       .flatMap(buildLogsRef => buildLogsRef.limitToFirst(10).rx_onChildAdded())
-      .flatMap(buildLog => findAccount(buildLog.val().accountId)
-        .filter(account => account && isHpeIntegrationAccount(account))
-        .map(() => buildLog))
-      .map(buildLog => new RunningBuild(buildLog.ref()));
-  }
-
-  static buildSteps(runningBuild) {
-    const buildRunningStepObservable = runningBuild.ref.child('data/started')
-      .rx_onValue()
-      .filter(snapshot => snapshot.exists())
-      .take(1)
-      .flatMap(() => runningBuild.ref.rx_onceValue())
-      .map(snapshot => snapshot.val())
-      .map((buildLog) => createBuildStepStatus(
-        'root',
-        buildLog.data.started,
-        0,
-        'running',
-        'unavailable'));
-
-    const buildFinishedStepObservable = runningBuild.ref.child('data/finished')
-      .rx_onValue()
-      .filter(snapshot => snapshot.exists())
-      .take(1)
-      .flatMap(() => runningBuild.ref.rx_onceValue())
-      .map(snapshot => snapshot.val())
-      .map((buildLog) => createBuildStepStatus(
-        'root',
-        buildLog.data.finished,
-        buildLog.data.finished - buildLog.data.started,
-        'finished',
-        'success'));
-
-    return Rx.Observable.concat(buildRunningStepObservable, buildFinishedStepObservable);
+      .flatMap(snapshot =>
+        Rx.Observable.zip(
+          findAccount(snapshot.val()),
+          findService(snapshot.val()),
+          (account, service) => new RunningBuild(
+            snapshot.ref(),
+            account,
+            service,
+            snapshot.val().id)));
   }
 }
 

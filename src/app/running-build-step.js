@@ -1,67 +1,5 @@
-import _ from 'lodash';
 import Rx from 'rx';
 import 'firebase-rx';
-import Firebase from 'firebase';
-import { Account, Service, Build, objectId } from './model';
-import { HpeApi, HpeApiPipeline } from 'lib/hpe-api';
-
-function findAccount(buildLog) {
-  return Rx.Observable
-    .fromPromise(() => Account.findOne({ _id: objectId(buildLog.accountId) }))
-    .map(account => account && account.toObject());
-}
-
-function findService(buildLog) {
-  return Rx.Observable
-    .fromPromise(() => Build.findOne({ progress_id: objectId(buildLog.id) }, 'serviceId'))
-    .takeWhile(progress => progress)
-    .flatMap(progress => Service.findOne({ _id: objectId(progress.get('serviceId')) }))
-    .takeWhile(service => service)
-    .map(service => service.toObject())
-    .defaultIfEmpty(null);
-}
-
-function openHpeSession(account) {
-  return HpeApi.connect();
-}
-
-function openHpeCiServer(hpeSession, account) {
-  const data = {
-    instanceId: account._id,
-    name: account.name,
-  };
-
-  return HpeApi
-    .findCiServer(hpeSession, data.instanceId)
-    .flapMap(ciServer => Rx.Observable.if(
-      () => ciServer,
-      Rx.Observable.just(ciServer),
-      HpeApi.createCiServer(hpeSession, data)));
-}
-
-function openHpePipeline(hpeSession, ciServer, service) {
-  const data = {
-    id: service._id,
-    name: service.name,
-    serverId: ciServer.id,
-  };
-
-  return HpeApi.createPipeline(hpeSession, data);
-}
-
-function prepareBuildStepStatusTemplate(buildLog, service, hpeCiServer, hpePipeline) {
-  return {
-    stepId: null,
-    serverInstanceId: hpeCiServer.id,
-    pipelineId: hpePipeline.id,
-    buildId: buildLog.id,
-    buildName: service.name,
-    startTime: null,
-    duration: null,
-    status: null,
-    result: null,
-  };
-}
 
 function mapBuildLogStepToPipelineStep(name) {
   if (name === 'Initializing Process') {
@@ -82,41 +20,42 @@ function mapBuildLogStepToPipelineStep(name) {
 }
 
 class RunningBuildStep {
-  static getRunningBuildSteps(buildLogRef) {
-    const buildLogStepsRef = buildLogRef.child('steps');
-    const buildLogObservable = buildLogRef.rx_onceValue().map(snapshot => snapshot.val());
-    const accountObservable = buildLogObservable.flatMap(findAccount).shareReplay();
-    const serviceObservable = buildLogObservable.flatMap(findService).shareReplay();
-    const hpeSessionObservable = accountObservable.flatMap(openHpeSession).shareReplay();
+  constructor(stepId, startTime, duration, status, result) {
+    this.stepId = stepId;
+    this.startTime = startTime;
+    this.duration = duration;
+    this.status = status;
+    this.result = result;
+  }
 
-    const hpeCiServerObservable = Rx.Observable
-      .zip(hpeSessionObservable, accountObservable, openHpeCiServer)
-      .shareReplay();
-
-    const hpePipelineObservable = Rx.Observable
-      .zip(hpeSessionObservable, accountObservable, openHpePipeline)
-      .shareReplay();
-
-
-    const buildStepStatusTemplate = Rx.Observable
-      .zip(
-        buildLogRefObservable,
-        serviceObservable,
-        hpeCiServerObservable,
-        hpePipelineObservable,
-        prepareBuildStepStatusTemplate)
-      .shareReplay();
-
-    const buildLogStepsEvents = Rx.Observable.merge(
-      buildLogStepsRef.rx_onChildAdded(),
-      buildLogStepsRef.rx_onChildChanged());
-
-    return buildLogStepsEvents
+  static buildSteps(runningBuild) {
+    const buildRunningStepObservable = runningBuild.ref.child('data/started')
+      .rx_onValue()
+      .filter(snapshot => snapshot.exists())
+      .take(1)
+      .flatMap(() => runningBuild.ref.rx_onceValue())
       .map(snapshot => snapshot.val())
-      .mapBuildLogStepToPipelineStep();
+      .map((buildLog) => new RunningBuildStep(
+        'root',
+        buildLog.data.started,
+        0,
+        'running',
+        'unavailable'));
 
-    
+    const buildFinishedStepObservable = runningBuild.ref.child('data/finished')
+      .rx_onValue()
+      .filter(snapshot => snapshot.exists())
+      .take(1)
+      .flatMap(() => runningBuild.ref.rx_onceValue())
+      .map(snapshot => snapshot.val())
+      .map((buildLog) => new RunningBuildStep(
+        'root',
+        buildLog.data.finished,
+        buildLog.data.finished - buildLog.data.started,
+        'finished',
+        'success'));
 
+    return Rx.Observable.concat(buildRunningStepObservable, buildFinishedStepObservable);
   }
 }
 

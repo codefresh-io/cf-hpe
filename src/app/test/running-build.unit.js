@@ -26,7 +26,7 @@ describe('RunningBuild', function () {
     RunningBuild
       .builds()
       .take(1)
-      .flatMap(build => RunningBuild.buildSteps(build))
+      .flatMap(build => RunningBuildStep.buildSteps(build))
       .doOnNext(buildStep => {
 
       })
