@@ -41,7 +41,6 @@ class BuildStep {
 
   static steps(build) {
     const startTime = _.now();
-
     const buildRunningStepObservable = build.ref.child('data/started')
       .rx_onValue()
       .filter(snapshot => snapshot.exists())
