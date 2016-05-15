@@ -42,9 +42,6 @@ function buildStepsObservable(build) {
     .rx_onChildAdded()
     .map(snapshot => {
       const step = snapshot.val();
-
-
-
       return new BuildStep(
         'pipeline',
         build.startTime,
@@ -93,9 +90,9 @@ class BuildStep {
   static steps(build) {
     return Rx.Observable
       .concat(
-        buildRunningObservable(),
-        buildStepsObservable(),
-        buildFinishedObservable())
+        buildRunningObservable(build),
+        // buildStepsObservable(build),
+        buildFinishedObservable(build))
       .timeout(config.buildTimeout * 1000)
       .catch(error => {
         logger.error('Build failed. build (%s) error (%s)', build.id, error);

@@ -1,6 +1,6 @@
 {
   "name": "cf-hpe",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "private": true,
   "main": "dist",
   "files": [
@@ -9,8 +9,7 @@
   "scripts": {
     "lint": "gulp lint",
     "build": "gulp build",
-    "test": "gulp test",
-    "integration-test": "gulp integration-test"
+    "test": "gulp test"
   },
   "dependencies": {
     "12factor-config": "^1.1.0",
