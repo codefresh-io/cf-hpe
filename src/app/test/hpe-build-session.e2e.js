@@ -35,7 +35,7 @@ describe('BuildHpe', function () {
           return HpeBuildSession.reportStepStatus(buildSession, step);
         });
       }))
-      .doOnNext(x => {
+      .doOnNext(stepStatus => {
 
       })
       .doOnError(error => {
