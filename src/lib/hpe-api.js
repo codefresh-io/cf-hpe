@@ -8,14 +8,6 @@ import HpeApiError from 'lib/hpe-api-error';
 import HpeApiPipeline from 'lib/hpe-api-pipeline';
 import config from './hpe-api-config';
 
-function getWorkspaceUri(session) {
-  return Util.format(
-    '%s/api/shared_spaces/%s/workspaces/%s',
-    session.config.hpeServerUrl,
-    session.config.hpeSharedSpace,
-    session.config.hpeWorkspace);
-}
-
 class HpeApi {
   static connect() {
     const jar = request.jar();
@@ -54,9 +46,17 @@ class HpeApi {
       });
   }
 
+  static _getWorkspaceUri(session) {
+    return Util.format(
+      '%s/api/shared_spaces/%s/workspaces/%s',
+      session.config.hpeServerUrl,
+      session.config.hpeSharedSpace,
+      session.config.hpeWorkspace);
+  }
+
   static findCiServer(session, instanceId) {
     const options = {
-      uri: Util.format('%s/ci_servers/', getWorkspaceUri(session)),
+      uri: Util.format('%s/ci_servers/', HpeApi._getWorkspaceUri(session)),
       json: true,
     };
 
@@ -84,7 +84,7 @@ class HpeApi {
     };
 
     const options = {
-      uri: Util.format('%s/ci_servers/', getWorkspaceUri(session)),
+      uri: Util.format('%s/ci_servers/', HpeApi._getWorkspaceUri(session)),
       json: true,
       body: {
         data: [data],
@@ -117,7 +117,7 @@ class HpeApi {
     };
 
     const options = {
-      uri: Util.format('%s/pipelines/', getWorkspaceUri(session)),
+      uri: Util.format('%s/pipelines/', HpeApi._getWorkspaceUri(session)),
       json: true,
       body: {
         data: [data],
@@ -162,7 +162,7 @@ class HpeApi {
     }
 
     const options = {
-      uri: Util.format('%s/analytics/ci/builds/', getWorkspaceUri(session)),
+      uri: Util.format('%s/analytics/ci/builds/', HpeApi._getWorkspaceUri(session)),
       json: true,
       body: data,
     };
@@ -211,7 +211,7 @@ class HpeApi {
     });
 
     const options = {
-      uri: Util.format('%s/test-results/', getWorkspaceUri(session)),
+      uri: Util.format('%s/test-results/', HpeApi._getWorkspaceUri(session)),
       'content-type': 'application/xml',
       body: data,
     };
