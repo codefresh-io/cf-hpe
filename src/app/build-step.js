@@ -12,23 +12,15 @@ const hpeStatusMapping = {
   terminated: 'aborted',
 };
 
-function mapBuildLogStepToPipelineStep(name) {
-  if (name === 'Initializing Process') {
-    return 'clone-repository';
-  }
-
-  if (name === 'Building Docker Image') {
-    return 'build-dockerfile';
-  }
-
-  if (name === 'Saving Image to Local Storage') {
-    return 'push-docker-registry';
-  }
-
-  if (name === 'Running Unit Tests') {
-    return 'unit-test-script';
-  }
-}
+const hpePipelineStepMapping = {
+  'Initializing Process': 'clone-repository',
+  'Building Docker Image': 'build-dockerfile',
+  'Running Unit Tests': 'unit-test-script',
+  'Pushing to Docker Registry': 'push-docker-registry',
+  'Running Integration Tests': 'integration-test-script',
+  'security-validation': 'security-validation',
+  'Running Deploy script': 'deploy-script',
+};
 
 class BuildStep {
   constructor(stepId, startTime, duration, status, result) {
@@ -40,7 +32,38 @@ class BuildStep {
   }
 
   static steps(build) {
-    const buildRunningStepObservable = build.ref.child('data/started')
+    const buildRunningStep = BuildStep.runningStep(build);
+    const finishedStep = BuildStep.finishedStep(build);
+    const childSteps = BuildStep.childSteps(build).takeUntil(finishedStep);
+
+    return Rx.Observable
+      .concat(
+        buildRunningStep,
+        childSteps,
+        finishedStep)
+      .timeout(config.buildTimeout * 1000)
+      .catch(error => {
+        logger.error('Build failed. build (%s) error (%s)', build.id, error);
+        return Rx.Observable.just(
+          new BuildStep(
+            'pipeline',
+            build.startTime,
+            _.now() - build.startTime,
+            'finished',
+            'failure'));
+      })
+      .doOnNext(buildStep => {
+        logger.info(
+          'Build step. build (%s) step (%s) status (%s) result (%s)',
+          build.id,
+          buildStep.stepId,
+          buildStep.status,
+          buildStep.result);
+      });
+  }
+
+  static runningStep(build) {
+    return build.ref.child('data/started')
       .rx_onValue()
       .filter(snapshot => snapshot.exists())
       .take(1)
@@ -52,8 +75,10 @@ class BuildStep {
           'running',
           'unavailable');
       });
+  }
 
-    const buildFinishedStepObservable = build.ref.child('data/finished')
+  static finishedStep(build) {
+    return build.ref.child('data/finished')
       .rx_onValue()
       .filter(snapshot => snapshot.exists())
       .take(1)
@@ -65,11 +90,6 @@ class BuildStep {
       .take(1)
       .map((snapshot) => {
         const buildLog = snapshot.val();
-        logger.info(
-          'Build finished. build (%s) status (%s)',
-          build.id,
-          buildLog.status);
-
         return new BuildStep(
           'pipeline',
           build.startTime,
@@ -77,19 +97,23 @@ class BuildStep {
           'finished',
           hpeStatusMapping[buildLog.status]);
       });
+  }
 
-    return Rx.Observable
-      .concat(buildRunningStepObservable, buildFinishedStepObservable)
-      .timeout(config.buildTimeout * 1000)
-      .catch(error => {
-        logger.error('Build failed. build (%s) error (%s)', build.id, error);
-        return Rx.Observable.just(
-          new BuildStep(
-            'pipeline',
-            build.startTime,
-            _.now() - build.startTime,
-            'finished',
-            'failure'));
+  static childSteps(build) {
+    return build.ref.child('steps')
+      .rx_onChildAdded()
+      .filter(snapshot => {
+        const step = snapshot.val();
+        return _.has(hpePipelineStepMapping, step.name);
+      })
+      .map(snapshot => {
+        const step = snapshot.val();
+        return new BuildStep(
+          hpePipelineStepMapping[step.name],
+          step.creationTimeStamp * 1000,
+          1000,
+          'finished',
+          'success');
       });
   }
 }

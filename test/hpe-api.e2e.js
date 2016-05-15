@@ -150,35 +150,35 @@ describe('HpeApi', function () {
         error => done(error));
   });
 
-  it.skip('Should report pipeline step "clone-repository" status as "finished"', function (done) {
+  it('Should report pipeline step "clone-repository" status as "finished"', function (done) {
     reportPipelineStepStatusHelper('clone-repository', 'finished', 'success', done);
   });
 
-  it.skip('Should report pipeline step "build-dockerfile" status as "finished"', function (done) {
+  it('Should report pipeline step "build-dockerfile" status as "finished"', function (done) {
     reportPipelineStepStatusHelper('build-dockerfile', 'finished', 'success', done);
   });
 
-  it.skip('Should report pipeline step "unit-test-script" status as "finished"', function (done) {
+  it('Should report pipeline step "unit-test-script" status as "finished"', function (done) {
     reportPipelineStepStatusHelper('unit-test-script', 'finished', 'success', done);
   });
 
-  it.skip('Should report pipeline step "push-docker-registry" status as "finished"', function (done) {
+  it('Should report pipeline step "push-docker-registry" status as "finished"', function (done) {
     reportPipelineStepStatusHelper('push-docker-registry', 'finished', 'success', done);
   });
 
-  it.skip('Should report pipeline step "integration-test-script" status as "finished"', function (done) {
+  it('Should report pipeline step "integration-test-script" status as "finished"', function (done) {
     reportPipelineStepStatusHelper('integration-test-script', 'finished', 'success', done);
   });
 
-  it.skip('Should report pipeline step "security-validation" status as "finished"', function (done) {
+  it('Should report pipeline step "security-validation" status as "finished"', function (done) {
     reportPipelineStepStatusHelper('security-validation', 'finished', 'success', done);
   });
 
-  it.skip('Should report pipeline step "deploy-script" status as "finished"', function (done) {
+  it('Should report pipeline step "deploy-script" status as "finished"', function (done) {
     reportPipelineStepStatusHelper('deploy-script', 'finished', 'success', done);
   });
 
-  it.skip('Should publish test success results #1', function (done) {
+  it('Should publish test success results #1', function (done) {
     const testResult = {
       stepId: 'unit-test-script',
       serverInstanceId: testData.serverInstanceId,
@@ -203,7 +203,7 @@ describe('HpeApi', function () {
         error => done(error));
   });
 
-  it.skip('Should publish test failed results #2', function (done) {
+  it('Should publish test failed results #2', function (done) {
     const testResult = {
       stepId: 'unit-test-script',
       serverInstanceId: testData.serverInstanceId,
@@ -228,7 +228,7 @@ describe('HpeApi', function () {
         error => done(error));
   });
 
-  it.skip('Should publish test success results #3', function (done) {
+  it('Should publish test success results #3', function (done) {
     const testResult = {
       stepId: 'integration-test-script',
       serverInstanceId: testData.serverInstanceId,
@@ -253,7 +253,7 @@ describe('HpeApi', function () {
         error => done(error));
   });
 
-  it.skip('Should publish test failed results #4', function (done) {
+  it('Should publish test failed results #4', function (done) {
     const testResult = {
       stepId: 'integration-test-script',
       serverInstanceId: testData.serverInstanceId,
