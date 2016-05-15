@@ -7,8 +7,8 @@ export default config({
     required: true,
   },
 
-  firebaseUrl: {
-    env: 'CF_HPE_FIREBASE_URL',
+  firebaseBuildLogsUrl: {
+    env: 'CF_HPE_FIREBASE_BUILD_LOGS_URL',
     type: 'string',
     required: true,
   },
@@ -19,9 +19,9 @@ export default config({
     required: true,
   },
 
-  firebaseBuildLogsPath: {
-    env: 'CF_HPE_FIREBASE_BUILD_LOGS_PATH',
-    type: 'string',
-    required: true,
+  buildTimeout: {
+    env: 'CF_HPE_BUILD_TIMEOUT',
+    type: 'integer',
+    default: 600,
   },
 });

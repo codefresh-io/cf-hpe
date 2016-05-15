@@ -10,13 +10,14 @@ const logger = Logger.getLogger('build');
 
 function openBuildLogsRef() {
   return Rx.Observable
-    .start(() => new Firebase(config.firebaseUrl))
-    .doOnNext(rootRef => logger.info('Open build logs ref. url (%s)', rootRef.toString()))
-    .flatMap(rootRef => rootRef.rx_authWithSecretToken(
-      config.firebaseSecret,
-      'hpe-service',
-      { admin: true }))
-    .map(rootRef => rootRef.child(config.firebaseBuildLogsPath));
+    .start(() => new Firebase(config.firebaseBuildLogsUrl))
+    .flatMap(buildLogs => {
+      logger.info('Open build logs ref. url (%s)', buildLogs.toString());
+      return buildLogs.rx_authWithSecretToken(
+        config.firebaseSecret,
+        'hpe-service',
+        { admin: true });
+    });
 }
 
 function isHpeIntegrationAccount(account) {
@@ -80,9 +81,9 @@ class Build {
         .orderByChild('data/started')
         .startAt(_.now() / 1000)
         .rx_onChildAdded())
-      .doOnNext(snapshot => logger.info('Receiving build log. build (%s)', snapshot.key()))
-      .flatMap(snapshot =>
-        Rx.Observable.zip(
+      .flatMap(snapshot => {
+        logger.info('Receiving build log. build (%s)', snapshot.key());
+        return Rx.Observable.zip(
           findAccount(snapshot),
           findService(snapshot),
           (account, service) => new Build(
@@ -90,7 +91,8 @@ class Build {
             snapshot.key(),
             service.name,
             account,
-            service)));
+            service));
+      });
   }
 }
 
