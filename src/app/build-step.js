@@ -101,19 +101,20 @@ class BuildStep {
 
   static _childSteps(build) {
     return build.ref.child('steps')
-      .rx_onChildAdded()
+      .rx_onChildChanged()
       .filter(snapshot => {
         const step = snapshot.val();
-        return _.has(_hpePipelineStepMapping, step.name);
+        return _.has(_hpePipelineStepMapping, step.name) &&
+          _.has(_hpeStatusMapping, step.status);
       })
       .map(snapshot => {
         const step = snapshot.val();
         return new BuildStep(
           _hpePipelineStepMapping[step.name],
           step.creationTimeStamp * 1000,
-          1000,
+          (step.finishTimeStamp - step.creationTimeStamp) * 1000,
           'finished',
-          'success');
+          _hpeStatusMapping[step.status]);
       });
   }
 }
