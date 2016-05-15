@@ -32,6 +32,7 @@ class BuildStep {
   }
 
   static steps(build) {
+    _logger.info('Processing build log steps. build (%s) service (%s)', build.id, build.name);
     const buildRunningStep = BuildStep._runningStep(build);
     const finishedStep = BuildStep._finishedStep(build);
     const childSteps = BuildStep._childSteps(build).takeUntil(finishedStep);
@@ -43,7 +44,12 @@ class BuildStep {
         finishedStep)
       .timeout(config.buildTimeout * 1000)
       .catch(error => {
-        _logger.error('Build failed. build (%s) error (%s)', build.id, error);
+        _logger.error(
+          'Build failed. build (%s) service (%s) error (%s)',
+          build.id,
+          build.name,
+          error);
+
         return Rx.Observable.just(
           new BuildStep(
             'pipeline',
@@ -54,11 +60,15 @@ class BuildStep {
       })
       .doOnNext(buildStep => {
         _logger.info(
-          'Build step. build (%s) step (%s) status (%s) result (%s)',
+          'Build step. build (%s) service (%s) step (%s) status (%s) result (%s)',
           build.id,
+          build.name,
           buildStep.stepId,
           buildStep.status,
           buildStep.result);
+      })
+      .doOnCompleted(() => {
+        _logger.info('Build finished. build (%s) service (%s)', build.id, build.name);
       });
   }
 
@@ -101,19 +111,20 @@ class BuildStep {
 
   static _childSteps(build) {
     return build.ref.child('steps')
-      .rx_onChildAdded()
+      .rx_onChildChanged()
       .filter(snapshot => {
         const step = snapshot.val();
-        return _.has(_hpePipelineStepMapping, step.name);
+        return _.has(_hpePipelineStepMapping, step.name) &&
+          _.has(_hpeStatusMapping, step.status);
       })
       .map(snapshot => {
         const step = snapshot.val();
         return new BuildStep(
           _hpePipelineStepMapping[step.name],
           step.creationTimeStamp * 1000,
-          1000,
+          (step.finishTimeStamp - step.creationTimeStamp) * 1000,
           'finished',
-          'success');
+          _hpeStatusMapping[step.status]);
       });
   }
 }

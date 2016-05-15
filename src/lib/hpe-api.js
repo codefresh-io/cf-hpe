@@ -9,6 +9,7 @@ import HpeApiPipeline from 'lib/hpe-api-pipeline';
 import config from './hpe-api-config';
 
 class HpeApi {
+
   static connect() {
     const jar = request.jar();
     const signInRequest = request.defaults({ jar });
