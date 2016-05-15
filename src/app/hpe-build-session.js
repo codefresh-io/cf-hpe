@@ -6,6 +6,43 @@ import Logger from 'lib/logger';
 
 const logger = Logger.getLogger('build-step');
 
+class HpeBuildSession {
+  constructor(build, session, pipeline) {
+    this.build = build;
+    this.session = session;
+    this.pipeline = pipeline;
+  }
+
+  static openSession(build) {
+    return Rx.Observable
+      .start(() => logger.info('Open hpe build session. build (%s)', build.id))
+      .flatMap(HpeApi.connect())
+      .flatMap(session =>
+        openHpeCiServer(session, build)
+          .flatMap(ciServer => openHpePipeline(session, ciServer, build))
+          .map(pipeline => new HpeBuildSession(build, session, pipeline)));
+  }
+
+  static reportStepStatus(buildSession, buildStep) {
+    const stepStatus = {
+      stepId: buildStep.stepId,
+      serverInstanceId: buildSession.pipeline.serverInstanceId,
+      pipelineId: buildSession.pipeline.id,
+      buildId: buildSession.build.id,
+      buildName: buildSession.build.name,
+      startTime: buildStep.startTime,
+      status: buildStep.status,
+      result: buildStep.result,
+    };
+
+    if (_.isNumber(buildStep.duration)) {
+      stepStatus.duration = buildStep.duration;
+    }
+
+    return HpeApi.reportPipelineStepStatus(buildSession.session, stepStatus);
+  }
+}
+
 function openHpeCiServer(session, build) {
   const ciServerData = {
     name: build.account.name,
@@ -46,43 +83,6 @@ function openHpePipeline(session, ciServer, build) {
       ...pipelineData,
       serverInstanceId: ciServer.instanceId,
     }));
-}
-
-class HpeBuildSession {
-  constructor(build, session, pipeline) {
-    this.build = build;
-    this.session = session;
-    this.pipeline = pipeline;
-  }
-
-  static openSession(build) {
-    return Rx.Observable
-      .start(() => logger.info('Open hpe build session. build (%s)', build.id))
-      .flatMap(HpeApi.connect())
-      .flatMap(session =>
-        openHpeCiServer(session, build)
-          .flatMap(ciServer => openHpePipeline(session, ciServer, build))
-          .map(pipeline => new HpeBuildSession(build, session, pipeline)));
-  }
-
-  static reportStepStatus(buildSession, buildStep) {
-    const stepStatus = {
-      stepId: buildStep.stepId,
-      serverInstanceId: buildSession.pipeline.serverInstanceId,
-      pipelineId: buildSession.pipeline.id,
-      buildId: buildSession.build.id,
-      buildName: buildSession.build.name,
-      startTime: buildStep.startTime,
-      status: buildStep.status,
-      result: buildStep.result,
-    };
-
-    if (_.isNumber(buildStep.duration)) {
-      stepStatus.duration = buildStep.duration;
-    }
-
-    return HpeApi.reportPipelineStepStatus(buildSession.session, stepStatus);
-  }
 }
 
 export default HpeBuildSession;

@@ -8,6 +8,37 @@ import config from './config';
 
 const logger = Logger.getLogger('build');
 
+class Build {
+  constructor(ref, id, name, account, service) {
+    this.ref = ref;
+    this.id = id;
+    this.name = name;
+    this.account = account;
+    this.service = service;
+    this.startTime = _.now();
+  }
+
+  static builds() {
+    return openBuildLogsRef()
+      .flatMap(buildLogsRef => buildLogsRef
+        .orderByChild('data/started')
+        .startAt(_.now() / 1000)
+        .rx_onChildAdded())
+      .flatMap(snapshot => {
+        logger.info('Receiving build log. build (%s)', snapshot.key());
+        return Rx.Observable.zip(
+          findAccount(snapshot),
+          findService(snapshot),
+          (account, service) => new Build(
+            snapshot.ref(),
+            snapshot.key(),
+            service.name,
+            account,
+            service));
+      });
+  }
+}
+
 function openBuildLogsRef() {
   return Rx.Observable
     .start(() => new Firebase(config.firebaseBuildLogsUrl))
@@ -21,7 +52,8 @@ function openBuildLogsRef() {
 }
 
 function isHpeIntegrationAccount(account) {
-  return true || account.integrations.hpe && account.integrations.hpe.active;
+  return account.name === 'codefresh-inc' ||
+    account.integrations.hpe && account.integrations.hpe.active;
 }
 
 function findAccount(buildLogSnapshot) {
@@ -64,37 +96,6 @@ function findService(buildLogSnapshot) {
       return true;
     })
     .map(service => service.toObject());
-}
-
-class Build {
-  constructor(ref, id, name, account, service) {
-    this.ref = ref;
-    this.id = id;
-    this.name = name;
-    this.account = account;
-    this.service = service;
-    this.startTime = _.now();
-  }
-
-  static builds() {
-    return openBuildLogsRef()
-      .flatMap(buildLogsRef => buildLogsRef
-        .orderByChild('data/started')
-        .startAt(_.now() / 1000)
-        .rx_onChildAdded())
-      .flatMap(snapshot => {
-        logger.info('Receiving build log. build (%s)', snapshot.key());
-        return Rx.Observable.zip(
-          findAccount(snapshot),
-          findService(snapshot),
-          (account, service) => new Build(
-            snapshot.ref(),
-            snapshot.key(),
-            service.name,
-            account,
-            service));
-      });
-  }
 }
 
 export default Build;
