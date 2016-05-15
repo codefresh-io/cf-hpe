@@ -73,6 +73,7 @@ class Build {
     this.name = name;
     this.account = account;
     this.service = service;
+    this.startTime = _.now();
   }
 
   static builds() {
