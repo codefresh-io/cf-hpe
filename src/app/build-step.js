@@ -4,15 +4,15 @@ import 'firebase-rx';
 import Logger from 'lib/logger';
 import config from './config';
 
-const logger = Logger.getLogger('build-step');
+const _logger = Logger.getLogger('build-step');
 
-const hpeStatusMapping = {
+const _hpeStatusMapping = {
   success: 'success',
   error: 'failure',
   terminated: 'aborted',
 };
 
-const hpePipelineStepMapping = {
+const _hpePipelineStepMapping = {
   'Initializing Process': 'clone-repository',
   'Building Docker Image': 'build-dockerfile',
   'Running Unit Tests': 'unit-test-script',
@@ -32,9 +32,9 @@ class BuildStep {
   }
 
   static steps(build) {
-    const buildRunningStep = BuildStep.runningStep(build);
-    const finishedStep = BuildStep.finishedStep(build);
-    const childSteps = BuildStep.childSteps(build).takeUntil(finishedStep);
+    const buildRunningStep = BuildStep._runningStep(build);
+    const finishedStep = BuildStep._finishedStep(build);
+    const childSteps = BuildStep._childSteps(build).takeUntil(finishedStep);
 
     return Rx.Observable
       .concat(
@@ -43,7 +43,7 @@ class BuildStep {
         finishedStep)
       .timeout(config.buildTimeout * 1000)
       .catch(error => {
-        logger.error('Build failed. build (%s) error (%s)', build.id, error);
+        _logger.error('Build failed. build (%s) error (%s)', build.id, error);
         return Rx.Observable.just(
           new BuildStep(
             'pipeline',
@@ -53,7 +53,7 @@ class BuildStep {
             'failure'));
       })
       .doOnNext(buildStep => {
-        logger.info(
+        _logger.info(
           'Build step. build (%s) step (%s) status (%s) result (%s)',
           build.id,
           buildStep.stepId,
@@ -62,7 +62,7 @@ class BuildStep {
       });
   }
 
-  static runningStep(build) {
+  static _runningStep(build) {
     return build.ref.child('data/started')
       .rx_onValue()
       .filter(snapshot => snapshot.exists())
@@ -77,7 +77,7 @@ class BuildStep {
       });
   }
 
-  static finishedStep(build) {
+  static _finishedStep(build) {
     return build.ref.child('data/finished')
       .rx_onValue()
       .filter(snapshot => snapshot.exists())
@@ -85,7 +85,7 @@ class BuildStep {
       .flatMap(() => build.ref.rx_onValue())
       .filter(snapshot => {
         const buildLog = snapshot.val();
-        return _.has(hpeStatusMapping, buildLog.status);
+        return _.has(_hpeStatusMapping, buildLog.status);
       })
       .take(1)
       .map((snapshot) => {
@@ -95,21 +95,21 @@ class BuildStep {
           build.startTime,
           _.now() - build.startTime,
           'finished',
-          hpeStatusMapping[buildLog.status]);
+          _hpeStatusMapping[buildLog.status]);
       });
   }
 
-  static childSteps(build) {
+  static _childSteps(build) {
     return build.ref.child('steps')
       .rx_onChildAdded()
       .filter(snapshot => {
         const step = snapshot.val();
-        return _.has(hpePipelineStepMapping, step.name);
+        return _.has(_hpePipelineStepMapping, step.name);
       })
       .map(snapshot => {
         const step = snapshot.val();
         return new BuildStep(
-          hpePipelineStepMapping[step.name],
+          _hpePipelineStepMapping[step.name],
           step.creationTimeStamp * 1000,
           1000,
           'finished',

@@ -60,9 +60,9 @@ var BuildStep = function () {
   _createClass(BuildStep, null, [{
     key: 'steps',
     value: function steps(build) {
-      var buildRunningStep = BuildStep.runningStep(build);
-      var finishedStep = BuildStep.finishedStep(build);
-      var childSteps = BuildStep.childSteps(build).takeUntil(finishedStep);
+      var buildRunningStep = BuildStep._runningStep(build);
+      var finishedStep = BuildStep._finishedStep(build);
+      var childSteps = BuildStep._childSteps(build).takeUntil(finishedStep);
 
       return _rx2.default.Observable.concat(buildRunningStep, childSteps, finishedStep).timeout(_config2.default.buildTimeout * 1000).catch(function (error) {
         logger.error('Build failed. build (%s) error (%s)', build.id, error);

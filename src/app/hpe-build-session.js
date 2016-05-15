@@ -4,7 +4,7 @@ import 'firebase-rx';
 import HpeApi from 'lib/hpe-api';
 import Logger from 'lib/logger';
 
-const logger = Logger.getLogger('build-step');
+const _logger = Logger.getLogger('build-step');
 
 class HpeBuildSession {
   constructor(build, session, pipeline) {
@@ -15,11 +15,11 @@ class HpeBuildSession {
 
   static openSession(build) {
     return Rx.Observable
-      .start(() => logger.info('Open hpe build session. build (%s)', build.id))
+      .start(() => _logger.info('Open hpe build session. build (%s)', build.id))
       .flatMap(HpeApi.connect())
       .flatMap(session =>
-        openHpeCiServer(session, build)
-          .flatMap(ciServer => openHpePipeline(session, ciServer, build))
+        HpeBuildSession._openHpeCiServer(session, build)
+          .flatMap(ciServer => HpeBuildSession._openHpePipeline(session, ciServer, build))
           .map(pipeline => new HpeBuildSession(build, session, pipeline)));
   }
 
@@ -41,48 +41,48 @@ class HpeBuildSession {
 
     return HpeApi.reportPipelineStepStatus(buildSession.session, stepStatus);
   }
-}
 
-function openHpeCiServer(session, build) {
-  const ciServerData = {
-    name: build.account.name,
-    instanceId: build.account._id.toString(),
-  };
+  static _openHpeCiServer(session, build) {
+    const ciServerData = {
+      name: build.account.name,
+      instanceId: build.account._id.toString(),
+    };
 
-  return HpeApi.findCiServer(session, ciServerData.instanceId)
-    .flatMap(ciServer => {
-      if (ciServer) {
-        return Rx.Observable.just(ciServer);
-      }
+    return HpeApi.findCiServer(session, ciServerData.instanceId)
+      .flatMap(ciServer => {
+        if (ciServer) {
+          return Rx.Observable.just(ciServer);
+        }
 
-      logger.info('Create hpe ci server. build (%s)', build.id);
-      return HpeApi.createCiServer(session, ciServerData);
-    })
-    .map(ciServer => ({
-      ...ciServerData,
-      id: ciServer.id,
-    }));
-}
+        _logger.info('Create hpe ci server. build (%s)', build.id);
+        return HpeApi.createCiServer(session, ciServerData);
+      })
+      .map(ciServer => ({
+        ...ciServerData,
+        id: ciServer.id,
+      }));
+  }
 
-function openHpePipeline(session, ciServer, build) {
-  const pipelineData = {
-    id: build.service._id.toString(),
-    name: build.service.name,
-    serverId: ciServer.id,
-  };
+  static _openHpePipeline(session, ciServer, build) {
+    const pipelineData = {
+      id: build.service._id.toString(),
+      name: build.service.name,
+      serverId: ciServer.id,
+    };
 
-  return HpeApi.createPipeline(session, pipelineData)
-    .catch(error => {
-      if (error.statusCode !== 409) {
-        return Rx.Observable.throw(error);
-      }
+    return HpeApi.createPipeline(session, pipelineData)
+      .catch(error => {
+        if (error.statusCode !== 409) {
+          return Rx.Observable.throw(error);
+        }
 
-      return Rx.Observable.just();
-    })
-    .map(() => ({
-      ...pipelineData,
-      serverInstanceId: ciServer.instanceId,
-    }));
+        return Rx.Observable.just();
+      })
+      .map(() => ({
+        ...pipelineData,
+        serverInstanceId: ciServer.instanceId,
+      }));
+  }
 }
 
 export default HpeBuildSession;

@@ -12,7 +12,6 @@
   },
   "rules": {
     "arrow-body-style": ["off"],
-    "no-underscore-dangle": ["off"],
-    "no-use-before-define": ["error", { "functions": false, "classes": true }]
+    "no-underscore-dangle": ["off"]
   }
 }
