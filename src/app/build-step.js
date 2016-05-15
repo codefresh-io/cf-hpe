@@ -1,8 +1,15 @@
+import _ from 'lodash';
 import Rx from 'rx';
 import 'firebase-rx';
 import Logger from 'lib/logger';
 
 const logger = Logger.getLogger('build-step');
+
+const hpeStatusMapping = {
+  success: 'success',
+  error: 'failure',
+  terminated: 'aborted',
+};
 
 function mapBuildLogStepToPipelineStep(name) {
   if (name === 'Initializing Process') {
@@ -22,18 +29,6 @@ function mapBuildLogStepToPipelineStep(name) {
   }
 }
 
-function mapBuildResult(buildLog) {
-  if (buildLog.status === 'success') {
-    return 'success';
-  }
-
-  if (buildLog.status === 'terminating') {
-    return 'aborted';
-  }
-
-  return 'failure';
-}
-
 class BuildStep {
   constructor(stepId, startTime, duration, status, result) {
     this.stepId = stepId;
@@ -49,28 +44,40 @@ class BuildStep {
       .filter(snapshot => snapshot.exists())
       .take(1)
       .flatMap(() => build.ref.rx_onceValue())
-      .map(snapshot => snapshot.val())
-      .map((buildLog) => new BuildStep(
-        'pipeline',
-        buildLog.data.started,
-        null,
-        'running',
-        'unavailable'));
+      .map((snapshot) => {
+        const buildLog = snapshot.val();
+        return new BuildStep(
+          'pipeline',
+          buildLog.data.started,
+          null,
+          'running',
+          'unavailable');
+      });
 
     const buildFinishedStepObservable = build.ref.child('data/finished')
       .rx_onValue()
       .filter(snapshot => snapshot.exists())
       .take(1)
-      .flatMap(() => build.ref.rx_onceValue())
-      .map(snapshot => snapshot.val())
-      .doOnNext(() => logger.info('Build finished. build (%s)', build.id))
-      .map((buildLog) =>
-        new BuildStep(
+      .flatMap(() => build.ref.rx_onValue())
+      .filter(snapshot => {
+        const buildLog = snapshot.val();
+        return _.has(hpeStatusMapping, buildLog.status);
+      })
+      .take(1)
+      .map((snapshot) => {
+        const buildLog = snapshot.val();
+        logger.info(
+          'Build finished. build (%s) status (%s)',
+          build.id,
+          buildLog.status);
+
+        return new BuildStep(
           'pipeline',
           buildLog.data.finished,
           buildLog.data.finished - buildLog.data.started,
           'finished',
-          mapBuildResult(buildLog)));
+          hpeStatusMapping[buildLog.status]);
+      });
 
     return Rx.Observable.concat(
       buildRunningStepObservable,

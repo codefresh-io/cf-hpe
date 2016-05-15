@@ -28,7 +28,7 @@ describe('BuildHpe', function () {
   });
 
   it.only('Should report build steps status', function (done) {
-    Build.builds().take(100)
+    Build.builds().take(5)
       .flatMap(build => HpeBuildSession.openSession(build).flatMap(buildSession => {
         return BuildStep.steps(build).flatMap(step => {
           return HpeBuildSession.reportStepStatus(buildSession, step);
