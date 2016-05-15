@@ -40,7 +40,6 @@ class BuildStep {
   }
 
   static steps(build) {
-    const startTime = _.now();
     const buildRunningStepObservable = build.ref.child('data/started')
       .rx_onValue()
       .filter(snapshot => snapshot.exists())
@@ -48,7 +47,7 @@ class BuildStep {
       .map(() => {
         return new BuildStep(
           'pipeline',
-          startTime,
+          build.startTime,
           null,
           'running',
           'unavailable');
@@ -67,13 +66,14 @@ class BuildStep {
       .map((snapshot) => {
         const buildLog = snapshot.val();
         logger.info(
-          'Build finished. build (%s) status (%s)', build.id,
+          'Build finished. build (%s) status (%s)',
+          build.id,
           buildLog.status);
 
         return new BuildStep(
           'pipeline',
-          startTime,
-          _.now() - startTime,
+          build.startTime,
+          _.now() - build.startTime,
           'finished',
           hpeStatusMapping[buildLog.status]);
       });
@@ -86,8 +86,8 @@ class BuildStep {
         return Rx.Observable.just(
           new BuildStep(
             'pipeline',
-            startTime,
-            _.now() - startTime,
+            build.startTime,
+            _.now() - build.startTime,
             'finished',
             'failure'));
       });
