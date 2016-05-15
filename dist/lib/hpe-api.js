@@ -46,10 +46,6 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-function getWorkspaceUri(session) {
-  return _util2.default.format('%s/api/shared_spaces/%s/workspaces/%s', session.config.hpeServerUrl, session.config.hpeSharedSpace, session.config.hpeWorkspace);
-}
-
 var HpeApi = function () {
   function HpeApi() {
     _classCallCheck(this, HpeApi);
@@ -89,10 +85,15 @@ var HpeApi = function () {
       });
     }
   }, {
+    key: '_getWorkspaceUri',
+    value: function _getWorkspaceUri(session) {
+      return _util2.default.format('%s/api/shared_spaces/%s/workspaces/%s', session.config.hpeServerUrl, session.config.hpeSharedSpace, session.config.hpeWorkspace);
+    }
+  }, {
     key: 'findCiServer',
     value: function findCiServer(session, instanceId) {
       var options = {
-        uri: _util2.default.format('%s/ci_servers/', getWorkspaceUri(session)),
+        uri: _util2.default.format('%s/ci_servers/', HpeApi._getWorkspaceUri(session)),
         json: true
       };
 
@@ -117,7 +118,7 @@ var HpeApi = function () {
       };
 
       var options = {
-        uri: _util2.default.format('%s/ci_servers/', getWorkspaceUri(session)),
+        uri: _util2.default.format('%s/ci_servers/', HpeApi._getWorkspaceUri(session)),
         json: true,
         body: {
           data: [data]
@@ -147,7 +148,7 @@ var HpeApi = function () {
       };
 
       var options = {
-        uri: _util2.default.format('%s/pipelines/', getWorkspaceUri(session)),
+        uri: _util2.default.format('%s/pipelines/', HpeApi._getWorkspaceUri(session)),
         json: true,
         body: {
           data: [data]
@@ -187,7 +188,7 @@ var HpeApi = function () {
       }
 
       var options = {
-        uri: _util2.default.format('%s/analytics/ci/builds/', getWorkspaceUri(session)),
+        uri: _util2.default.format('%s/analytics/ci/builds/', HpeApi._getWorkspaceUri(session)),
         json: true,
         body: data
       };
@@ -233,7 +234,7 @@ var HpeApi = function () {
       });
 
       var options = {
-        uri: _util2.default.format('%s/test-results/', getWorkspaceUri(session)),
+        uri: _util2.default.format('%s/test-results/', HpeApi._getWorkspaceUri(session)),
         'content-type': 'application/xml',
         body: data
       };

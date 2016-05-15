@@ -16,9 +16,9 @@ var _rx2 = _interopRequireDefault(_rx);
 
 require('firebase-rx');
 
-var _logger = require('../lib/logger');
+var _logger2 = require('../lib/logger');
 
-var _logger2 = _interopRequireDefault(_logger);
+var _logger3 = _interopRequireDefault(_logger2);
 
 var _config = require('./config');
 
@@ -28,15 +28,15 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var logger = _logger2.default.getLogger('build-step');
+var _logger = _logger3.default.getLogger('build-step');
 
-var hpeStatusMapping = {
+var _hpeStatusMapping = {
   success: 'success',
   error: 'failure',
   terminated: 'aborted'
 };
 
-var hpePipelineStepMapping = {
+var _hpePipelineStepMapping = {
   'Initializing Process': 'clone-repository',
   'Building Docker Image': 'build-dockerfile',
   'Running Unit Tests': 'unit-test-script',
@@ -65,15 +65,15 @@ var BuildStep = function () {
       var childSteps = BuildStep._childSteps(build).takeUntil(finishedStep);
 
       return _rx2.default.Observable.concat(buildRunningStep, childSteps, finishedStep).timeout(_config2.default.buildTimeout * 1000).catch(function (error) {
-        logger.error('Build failed. build (%s) error (%s)', build.id, error);
+        _logger.error('Build failed. build (%s) error (%s)', build.id, error);
         return _rx2.default.Observable.just(new BuildStep('pipeline', build.startTime, _lodash2.default.now() - build.startTime, 'finished', 'failure'));
       }).doOnNext(function (buildStep) {
-        logger.info('Build step. build (%s) step (%s) status (%s) result (%s)', build.id, buildStep.stepId, buildStep.status, buildStep.result);
+        _logger.info('Build step. build (%s) step (%s) status (%s) result (%s)', build.id, buildStep.stepId, buildStep.status, buildStep.result);
       });
     }
   }, {
-    key: 'runningStep',
-    value: function runningStep(build) {
+    key: '_runningStep',
+    value: function _runningStep(build) {
       return build.ref.child('data/started').rx_onValue().filter(function (snapshot) {
         return snapshot.exists();
       }).take(1).map(function () {
@@ -81,29 +81,29 @@ var BuildStep = function () {
       });
     }
   }, {
-    key: 'finishedStep',
-    value: function finishedStep(build) {
+    key: '_finishedStep',
+    value: function _finishedStep(build) {
       return build.ref.child('data/finished').rx_onValue().filter(function (snapshot) {
         return snapshot.exists();
       }).take(1).flatMap(function () {
         return build.ref.rx_onValue();
       }).filter(function (snapshot) {
         var buildLog = snapshot.val();
-        return _lodash2.default.has(hpeStatusMapping, buildLog.status);
+        return _lodash2.default.has(_hpeStatusMapping, buildLog.status);
       }).take(1).map(function (snapshot) {
         var buildLog = snapshot.val();
-        return new BuildStep('pipeline', build.startTime, _lodash2.default.now() - build.startTime, 'finished', hpeStatusMapping[buildLog.status]);
+        return new BuildStep('pipeline', build.startTime, _lodash2.default.now() - build.startTime, 'finished', _hpeStatusMapping[buildLog.status]);
       });
     }
   }, {
-    key: 'childSteps',
-    value: function childSteps(build) {
+    key: '_childSteps',
+    value: function _childSteps(build) {
       return build.ref.child('steps').rx_onChildAdded().filter(function (snapshot) {
         var step = snapshot.val();
-        return _lodash2.default.has(hpePipelineStepMapping, step.name);
+        return _lodash2.default.has(_hpePipelineStepMapping, step.name);
       }).map(function (snapshot) {
         var step = snapshot.val();
-        return new BuildStep(hpePipelineStepMapping[step.name], step.creationTimeStamp * 1000, 1000, 'finished', 'success');
+        return new BuildStep(_hpePipelineStepMapping[step.name], step.creationTimeStamp * 1000, 1000, 'finished', 'success');
       });
     }
   }]);
