@@ -22,6 +22,6 @@ export default config({
   buildTimeout: {
     env: 'CF_HPE_BUILD_TIMEOUT',
     type: 'integer',
-    default: 60,
+    default: 600,
   },
 });
