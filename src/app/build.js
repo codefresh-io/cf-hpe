@@ -10,15 +10,14 @@ const logger = Logger.getLogger('build');
 
 function openBuildLogsRef() {
   return Rx.Observable
-    .start(() => new Firebase(config.firebaseUrl))
-    .flatMap(rootRef => {
-      logger.info('Open build logs ref. url (%s)', rootRef.toString());
-      return rootRef.rx_authWithSecretToken(
+    .start(() => new Firebase(config.firebaseBuildLogsUrl))
+    .flatMap(buildLogs => {
+      logger.info('Open build logs ref. url (%s)', buildLogs.toString());
+      return buildLogs.rx_authWithSecretToken(
         config.firebaseSecret,
         'hpe-service',
         { admin: true });
-    })
-    .map(rootRef => rootRef.child(config.firebaseBuildLogsPath));
+    });
 }
 
 function isHpeIntegrationAccount(account) {

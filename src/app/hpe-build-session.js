@@ -72,13 +72,13 @@ class HpeBuildSession {
       pipelineId: buildSession.pipeline.id,
       buildId: buildSession.build.id,
       buildName: buildSession.build.name,
-      startTime: buildStep.startTime * 1000,
+      startTime: buildStep.startTime,
       status: buildStep.status,
       result: buildStep.result,
     };
 
     if (_.isNumber(buildStep.duration)) {
-      stepStatus.duration = buildStep.duration * 1000;
+      stepStatus.duration = buildStep.duration;
     }
 
     return HpeApi.reportPipelineStepStatus(buildSession.session, stepStatus);

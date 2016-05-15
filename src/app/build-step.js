@@ -2,6 +2,7 @@ import _ from 'lodash';
 import Rx from 'rx';
 import 'firebase-rx';
 import Logger from 'lib/logger';
+import config from './config';
 
 const logger = Logger.getLogger('build-step');
 
@@ -39,16 +40,16 @@ class BuildStep {
   }
 
   static steps(build) {
+    const startTime = _.now();
+
     const buildRunningStepObservable = build.ref.child('data/started')
       .rx_onValue()
       .filter(snapshot => snapshot.exists())
       .take(1)
-      .flatMap(() => build.ref.rx_onceValue())
-      .map((snapshot) => {
-        const buildLog = snapshot.val();
+      .map(() => {
         return new BuildStep(
           'pipeline',
-          buildLog.data.started,
+          startTime,
           null,
           'running',
           'unavailable');
@@ -67,21 +68,30 @@ class BuildStep {
       .map((snapshot) => {
         const buildLog = snapshot.val();
         logger.info(
-          'Build finished. build (%s) status (%s)',
-          build.id,
+          'Build finished. build (%s) status (%s)', build.id,
           buildLog.status);
 
         return new BuildStep(
           'pipeline',
-          buildLog.data.finished,
-          buildLog.data.finished - buildLog.data.started,
+          startTime,
+          _.now() - startTime,
           'finished',
           hpeStatusMapping[buildLog.status]);
       });
 
-    return Rx.Observable.concat(
-      buildRunningStepObservable,
-      buildFinishedStepObservable);
+    return Rx.Observable
+      .concat(buildRunningStepObservable, buildFinishedStepObservable)
+      .timeout(config.buildTimeout * 1000)
+      .catch(error => {
+        logger.error('Build failed. build (%s) error (%s)', build.id, error);
+        return Rx.Observable.just(
+          new BuildStep(
+            'pipeline',
+            startTime,
+            _.now() - startTime,
+            'finished',
+            'failure'));
+      });
   }
 }
 
