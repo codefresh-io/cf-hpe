@@ -25,7 +25,7 @@ class Build {
         .startAt(_.now() / 1000)
         .rx_onChildAdded())
       .flatMap(snapshot => {
-        _logger.info('Receiving build log. build (%s)', snapshot.key());
+        _logger.info('New build log. build (%s)', snapshot.key());
         return Rx.Observable.zip(
           Build._findAccount(snapshot),
           Build._findService(snapshot),
