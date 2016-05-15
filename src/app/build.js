@@ -52,7 +52,7 @@ function openBuildLogsRef() {
 }
 
 function isHpeIntegrationAccount(account) {
-  return account.name === 'codefresh-inc' ||
+  return account.name === 'liorshalev01' ||
     account.integrations.hpe && account.integrations.hpe.active;
 }
 

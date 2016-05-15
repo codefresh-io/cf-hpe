@@ -6,5 +6,5 @@ WORKDIR ${workdir}
 
 COPY package.json ${workdir}
 RUN npm install
-COPY ./dist ${workdir}
+COPY ./dist ${workdir}/dist
 CMD npm start

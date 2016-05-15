@@ -46,37 +46,6 @@ var hpePipelineStepMapping = {
   'Running Deploy script': 'deploy-script'
 };
 
-function buildRunningObservable(build) {
-  return build.ref.child('data/started').rx_onValue().filter(function (snapshot) {
-    return snapshot.exists();
-  }).take(1).map(function () {
-    return new BuildStep('pipeline', build.startTime, null, 'running', 'unavailable');
-  });
-}
-
-function buildStepsObservable(build) {
-  return build.ref.child('steps').rx_onChildAdded().map(function (snapshot) {
-    var step = snapshot.val();
-    return new BuildStep('pipeline', build.startTime, null, 'running', 'unavailable');
-  });
-}
-
-function buildFinishedObservable(build) {
-  return build.ref.child('data/finished').rx_onValue().filter(function (snapshot) {
-    return snapshot.exists();
-  }).take(1).flatMap(function () {
-    return build.ref.rx_onValue();
-  }).filter(function (snapshot) {
-    var buildLog = snapshot.val();
-    return _lodash2.default.has(hpeStatusMapping, buildLog.status);
-  }).take(1).map(function (snapshot) {
-    var buildLog = snapshot.val();
-    logger.info('Build finished. build (%s) status (%s)', build.id, buildLog.status);
-
-    return new BuildStep('pipeline', build.startTime, _lodash2.default.now() - build.startTime, 'finished', hpeStatusMapping[buildLog.status]);
-  });
-}
-
 var BuildStep = function () {
   function BuildStep(stepId, startTime, duration, status, result) {
     _classCallCheck(this, BuildStep);
@@ -91,11 +60,50 @@ var BuildStep = function () {
   _createClass(BuildStep, null, [{
     key: 'steps',
     value: function steps(build) {
-      return _rx2.default.Observable.concat(buildRunningObservable(build),
-      // buildStepsObservable(build),
-      buildFinishedObservable(build)).timeout(_config2.default.buildTimeout * 1000).catch(function (error) {
+      var buildRunningStep = BuildStep.runningStep(build);
+      var finishedStep = BuildStep.finishedStep(build);
+      var childSteps = BuildStep.childSteps(build).takeUntil(finishedStep);
+
+      return _rx2.default.Observable.concat(buildRunningStep, childSteps, finishedStep).timeout(_config2.default.buildTimeout * 1000).catch(function (error) {
         logger.error('Build failed. build (%s) error (%s)', build.id, error);
         return _rx2.default.Observable.just(new BuildStep('pipeline', build.startTime, _lodash2.default.now() - build.startTime, 'finished', 'failure'));
+      }).doOnNext(function (buildStep) {
+        logger.info('Build step. build (%s) step (%s) status (%s) result (%s)', build.id, buildStep.stepId, buildStep.status, buildStep.result);
+      });
+    }
+  }, {
+    key: 'runningStep',
+    value: function runningStep(build) {
+      return build.ref.child('data/started').rx_onValue().filter(function (snapshot) {
+        return snapshot.exists();
+      }).take(1).map(function () {
+        return new BuildStep('pipeline', build.startTime, null, 'running', 'unavailable');
+      });
+    }
+  }, {
+    key: 'finishedStep',
+    value: function finishedStep(build) {
+      return build.ref.child('data/finished').rx_onValue().filter(function (snapshot) {
+        return snapshot.exists();
+      }).take(1).flatMap(function () {
+        return build.ref.rx_onValue();
+      }).filter(function (snapshot) {
+        var buildLog = snapshot.val();
+        return _lodash2.default.has(hpeStatusMapping, buildLog.status);
+      }).take(1).map(function (snapshot) {
+        var buildLog = snapshot.val();
+        return new BuildStep('pipeline', build.startTime, _lodash2.default.now() - build.startTime, 'finished', hpeStatusMapping[buildLog.status]);
+      });
+    }
+  }, {
+    key: 'childSteps',
+    value: function childSteps(build) {
+      return build.ref.child('steps').rx_onChildAdded().filter(function (snapshot) {
+        var step = snapshot.val();
+        return _lodash2.default.has(hpePipelineStepMapping, step.name);
+      }).map(function (snapshot) {
+        var step = snapshot.val();
+        return new BuildStep(hpePipelineStepMapping[step.name], step.creationTimeStamp * 1000, 1000, 'finished', 'success');
       });
     }
   }]);

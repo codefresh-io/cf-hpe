@@ -38,6 +38,35 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var logger = _logger2.default.getLogger('build');
 
+var Build = function () {
+  function Build(ref, id, name, account, service) {
+    _classCallCheck(this, Build);
+
+    this.ref = ref;
+    this.id = id;
+    this.name = name;
+    this.account = account;
+    this.service = service;
+    this.startTime = _lodash2.default.now();
+  }
+
+  _createClass(Build, null, [{
+    key: 'builds',
+    value: function builds() {
+      return openBuildLogsRef().flatMap(function (buildLogsRef) {
+        return buildLogsRef.orderByChild('data/started').startAt(_lodash2.default.now() / 1000).rx_onChildAdded();
+      }).flatMap(function (snapshot) {
+        logger.info('Receiving build log. build (%s)', snapshot.key());
+        return _rx2.default.Observable.zip(findAccount(snapshot), findService(snapshot), function (account, service) {
+          return new Build(snapshot.ref(), snapshot.key(), service.name, account, service);
+        });
+      });
+    }
+  }]);
+
+  return Build;
+}();
+
 function openBuildLogsRef() {
   return _rx2.default.Observable.start(function () {
     return new _firebase2.default(_config2.default.firebaseBuildLogsUrl);
@@ -48,7 +77,7 @@ function openBuildLogsRef() {
 }
 
 function isHpeIntegrationAccount(account) {
-  return true || account.integrations.hpe && account.integrations.hpe.active;
+  return account.name === 'liorshalev01' || account.integrations.hpe && account.integrations.hpe.active;
 }
 
 function findAccount(buildLogSnapshot) {
@@ -91,34 +120,5 @@ function findService(buildLogSnapshot) {
     return service.toObject();
   });
 }
-
-var Build = function () {
-  function Build(ref, id, name, account, service) {
-    _classCallCheck(this, Build);
-
-    this.ref = ref;
-    this.id = id;
-    this.name = name;
-    this.account = account;
-    this.service = service;
-    this.startTime = _lodash2.default.now();
-  }
-
-  _createClass(Build, null, [{
-    key: 'builds',
-    value: function builds() {
-      return openBuildLogsRef().flatMap(function (buildLogsRef) {
-        return buildLogsRef.orderByChild('data/started').startAt(_lodash2.default.now() / 1000).rx_onChildAdded();
-      }).flatMap(function (snapshot) {
-        logger.info('Receiving build log. build (%s)', snapshot.key());
-        return _rx2.default.Observable.zip(findAccount(snapshot), findService(snapshot), function (account, service) {
-          return new Build(snapshot.ref(), snapshot.key(), service.name, account, service);
-        });
-      });
-    }
-  }]);
-
-  return Build;
-}();
 
 exports.default = Build;

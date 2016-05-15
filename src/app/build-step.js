@@ -111,7 +111,7 @@ class BuildStep {
         return new BuildStep(
           hpePipelineStepMapping[step.name],
           step.creationTimeStamp * 1000,
-          1,
+          1000,
           'finished',
           'success');
       });

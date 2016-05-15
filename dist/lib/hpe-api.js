@@ -65,7 +65,7 @@ var HpeApi = function () {
         json: true,
         body: {
           user: _hpeApiConfig2.default.hpeUser,
-          password: _hpeApiConfig2.default.hpePassword
+          password: '=211cb1cdb045df37I'
         }
       };
 

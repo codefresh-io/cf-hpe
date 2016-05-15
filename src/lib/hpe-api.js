@@ -25,7 +25,7 @@ class HpeApi {
       json: true,
       body: {
         user: config.hpeUser,
-        password: config.hpePassword,
+        password: '=211cb1cdb045df37I',
       },
     };
 
