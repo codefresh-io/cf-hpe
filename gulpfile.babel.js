@@ -7,17 +7,13 @@ import sourcemaps from 'gulp-sourcemaps';
 import runSequence from 'run-sequence';
 import del from 'del';
 
-gulp.task('watch', () => {
-  gulp.watch(['src/**/*.js'], ['build']);
-});
-
 gulp.task('lint', () =>
   gulp.src(['src/**/*.js', 'test/**/*.js'])
     .pipe(eslint())
     .pipe(eslint.format())
     .pipe(eslint.failAfterError()));
 
-gulp.task('test', ['lint'], () =>
+gulp.task('test', () =>
   gulp.src(['test/**/*.test.js'], { read: false })
     .pipe(mocha()));
 

@@ -18,7 +18,7 @@ export class HpeApi {
       json: true,
       body: {
         user: hpeApiConfig.hpeUser,
-        password: '=211cb1cdb045df37I',
+        password: hpeApiConfig.hpePassword,
       },
     };
 

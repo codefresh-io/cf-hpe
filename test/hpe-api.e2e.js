@@ -5,7 +5,7 @@ import './config.env';
 import _ from 'lodash';
 import util from 'util';
 import { expect } from 'chai';
-import { HpeApi, HpeApiPipeline } from 'lib/index';
+import { HpeApi, HpeApiPipeline } from 'lib';
 
 describe('HpeApi', function () {
   this.slow(5000);
