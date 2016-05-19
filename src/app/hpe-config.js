@@ -1,6 +1,6 @@
 import config from '12factor-config';
 
-export default config({
+export const HpeConfig = config({
   mongodbUrl: {
     env: 'CF_HPE_MONGODB_URL',
     type: 'string',

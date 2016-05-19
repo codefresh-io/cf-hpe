@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import util from 'util';
 
-class Logger {
+export class Logger {
   static getLogger(category) {
     return new Logger(category);
   }
@@ -40,5 +40,3 @@ class Logger {
     console[level](format);
   }
 }
-
-export default Logger;

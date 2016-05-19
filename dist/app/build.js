@@ -81,7 +81,7 @@ var Build = function () {
     key: '_findAccount',
     value: function _findAccount(buildLogSnapshot) {
       return _rx2.default.Observable.fromPromise(function () {
-        return _model2.default.Account.findOne({ _id: _model2.default.objectId(buildLogSnapshot.val().accountId) });
+        return _model2.default.Account.findOne({ _id: _model2.default.ObjectId(buildLogSnapshot.val().accountId) });
       }).filter(function (account) {
         if (!account) {
           _logger.warn('Build account not found. build (%s)', buildLogSnapshot.key());
@@ -99,7 +99,7 @@ var Build = function () {
     key: '_findService',
     value: function _findService(buildLogSnapshot) {
       return _rx2.default.Observable.fromPromise(function () {
-        return _model2.default.Build.findOne({ progress_id: _model2.default.objectId(buildLogSnapshot.key()) }, 'serviceId');
+        return _model2.default.Build.findOne({ progress_id: _model2.default.ObjectId(buildLogSnapshot.key()) }, 'serviceId');
       }).filter(function (progress) {
         if (!progress) {
           _logger.warn('Build progress not found. build (%s)', buildLogSnapshot.key());
@@ -108,7 +108,7 @@ var Build = function () {
 
         return true;
       }).flatMap(function (progress) {
-        return _model2.default.Service.findOne({ _id: _model2.default.objectId(progress.get('serviceId')) });
+        return _model2.default.Service.findOne({ _id: _model2.default.ObjectId(progress.get('serviceId')) });
       }).filter(function (service) {
         if (!service) {
           _logger.warn('Build service not found. build (%s)', buildLogSnapshot.key());

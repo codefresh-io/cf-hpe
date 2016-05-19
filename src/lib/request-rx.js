@@ -1,6 +1,6 @@
 import Rx from 'rx';
 
-class RequestRx {
+export class RequestRx {
   static get(request, options) {
     return Rx.Observable.create(observer => {
       request.get(options, (error, response) => {
@@ -58,5 +58,3 @@ class RequestRx {
   }
 
 }
-
-export default RequestRx;

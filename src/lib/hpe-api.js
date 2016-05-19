@@ -3,21 +3,21 @@ import Rx from 'rx';
 import Util from 'util';
 import Xml2js from 'xml2js';
 import request from 'request';
-import RequestRx from 'lib/request-rx';
-import HpeApiError from 'lib/hpe-api-error';
-import HpeApiPipeline from 'lib/hpe-api-pipeline';
-import config from './hpe-api-config';
+import { RequestRx } from 'lib/request-rx';
+import { HpeApiError } from 'lib/hpe-api-error';
+import { HpeApiPipeline } from 'lib/hpe-api-pipeline';
+import { hpeApiConfig } from './hpe-api-config';
 
-class HpeApi {
+export class HpeApi {
 
   static connect() {
     const jar = request.jar();
     const signInRequest = request.defaults({ jar });
     const options = {
-      uri: Util.format('%s/authentication/sign_in/', config.hpeServerUrl),
+      uri: Util.format('%s/authentication/sign_in/', hpeApiConfig.hpeServerUrl),
       json: true,
       body: {
-        user: config.hpeUser,
+        user: hpeApiConfig.hpeUser,
         password: '=211cb1cdb045df37I',
       },
     };
@@ -32,12 +32,12 @@ class HpeApi {
         }
 
         const csrfToken =
-          _(jar.getCookies(config.hpeServerUrl))
+          _(jar.getCookies(hpeApiConfig.hpeServerUrl))
             .find(cookie => cookie.key === 'HPSSO_COOKIE_CSRF')
             .value;
 
         return {
-          config,
+          hpeApiConfig,
           request: signInRequest.defaults({
             headers: {
               'HPSSO-HEADER-CSRF': csrfToken,
@@ -50,9 +50,9 @@ class HpeApi {
   static _getWorkspaceUri(session) {
     return Util.format(
       '%s/api/shared_spaces/%s/workspaces/%s',
-      session.config.hpeServerUrl,
-      session.config.hpeSharedSpace,
-      session.config.hpeWorkspace);
+      session.hpeApiConfig.hpeServerUrl,
+      session.hpeApiConfig.hpeSharedSpace,
+      session.hpeApiConfig.hpeWorkspace);
   }
 
   static findCiServer(session, instanceId) {
@@ -230,5 +230,3 @@ class HpeApi {
       });
   }
 }
-
-export default HpeApi;

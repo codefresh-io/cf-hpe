@@ -21,7 +21,7 @@ var Service = _mongoose2.default.model('service', new _mongoose.Schema());
 var Build = _mongoose2.default.model('build', new _mongoose.Schema());
 
 exports.default = {
-  objectId: objectId,
+  ObjectId: objectId,
   Account: Account,
   Service: Service,
   Build: Build

@@ -1,12 +1,11 @@
 import _ from 'lodash';
 import Rx from 'rx';
-import 'firebase-rx';
-import HpeApi from 'lib/hpe-api';
-import Logger from 'lib/logger';
+import { HpeApi } from 'lib/hpe-api';
+import { Logger } from 'lib/logger';
 
-const _logger = Logger.getLogger('build-step');
+const logger = Logger.getLogger('HpeBuildSession');
 
-class HpeBuildSession {
+export class HpeBuildSession {
   constructor(build, session, pipeline) {
     this.build = build;
     this.session = session;
@@ -15,7 +14,7 @@ class HpeBuildSession {
 
   static openSession(build) {
     return Rx.Observable
-      .start(() => _logger.info('Open hpe build session. build (%s)', build.id))
+      .start(() => logger.info('Open hpe build session. build (%s)', build.id))
       .flatMap(HpeApi.connect())
       .flatMap(session =>
         HpeBuildSession._openHpeCiServer(session, build)
@@ -54,7 +53,7 @@ class HpeBuildSession {
           return Rx.Observable.just(ciServer);
         }
 
-        _logger.info('Create hpe ci server. build (%s)', build.id);
+        logger.info('Create hpe ci server. build (%s)', build.id);
         return HpeApi.createCiServer(session, ciServerData);
       })
       .map(ciServer => ({
@@ -84,5 +83,3 @@ class HpeBuildSession {
       }));
   }
 }
-
-export default HpeBuildSession;

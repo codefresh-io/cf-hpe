@@ -1,18 +1,18 @@
 import _ from 'lodash';
 import Rx from 'rx';
-import 'firebase-rx';
-import Logger from 'lib/logger';
-import config from './config';
+import { FirebaseRx } from 'firebase-rx';
+import { Logger } from 'lib/logger';
+import { HpeConfig } from 'app/hpe-config';
 
-const _logger = Logger.getLogger('build-step');
+const logger = Logger.getLogger('BuildStep');
 
-const _hpeStatusMapping = {
+const hpeStatusMapping = {
   success: 'success',
   error: 'failure',
   terminated: 'aborted',
 };
 
-const _hpePipelineStepMapping = {
+const hpePipelineStepMapping = {
   'Initializing Process': 'clone-repository',
   'Building Docker Image': 'build-dockerfile',
   'Running Unit Tests': 'unit-test-script',
@@ -22,7 +22,7 @@ const _hpePipelineStepMapping = {
   'Running Deploy script': 'deploy-script',
 };
 
-class BuildStep {
+export class BuildStep {
   constructor(stepId, startTime, duration, status, result) {
     this.stepId = stepId;
     this.startTime = startTime;
@@ -32,7 +32,7 @@ class BuildStep {
   }
 
   static steps(build) {
-    _logger.info('Processing build log steps. build (%s) service (%s)', build.id, build.name);
+    logger.info('Processing build log steps. build (%s) service (%s)', build.id, build.name);
     const buildRunningStep = BuildStep._runningStep(build);
     const finishedStep = BuildStep._finishedStep(build);
     const childSteps = BuildStep._childSteps(build).takeUntil(finishedStep);
@@ -42,9 +42,9 @@ class BuildStep {
         buildRunningStep,
         childSteps,
         finishedStep)
-      .timeout(config.buildTimeout * 1000)
+      .timeout(HpeConfig.buildTimeout * 1000)
       .catch(error => {
-        _logger.error(
+        logger.error(
           'Build failed. build (%s) service (%s) error (%s)',
           build.id,
           build.name,
@@ -59,7 +59,7 @@ class BuildStep {
             'failure'));
       })
       .doOnNext(buildStep => {
-        _logger.info(
+        logger.info(
           'Build step. build (%s) service (%s) step (%s) status (%s) result (%s)',
           build.id,
           build.name,
@@ -68,13 +68,12 @@ class BuildStep {
           buildStep.result);
       })
       .doOnCompleted(() => {
-        _logger.info('Build finished. build (%s) service (%s)', build.id, build.name);
+        logger.info('Build finished. build (%s) service (%s)', build.id, build.name);
       });
   }
 
   static _runningStep(build) {
-    return build.ref.child('data/started')
-      .rx_onValue()
+    return FirebaseRx.onValue(build.ref.child('data/started'))
       .filter(snapshot => snapshot.exists())
       .take(1)
       .map(() => {
@@ -88,14 +87,13 @@ class BuildStep {
   }
 
   static _finishedStep(build) {
-    return build.ref.child('data/finished')
-      .rx_onValue()
+    return FirebaseRx.onValue(build.ref.child('data/finished'))
       .filter(snapshot => snapshot.exists())
       .take(1)
-      .flatMap(() => build.ref.rx_onValue())
+      .flatMap(() => FirebaseRx.onValue(build.ref))
       .filter(snapshot => {
         const buildLog = snapshot.val();
-        return _.has(_hpeStatusMapping, buildLog.status);
+        return _.has(hpeStatusMapping, buildLog.status);
       })
       .take(1)
       .map((snapshot) => {
@@ -105,28 +103,25 @@ class BuildStep {
           build.startTime,
           _.now() - build.startTime,
           'finished',
-          _hpeStatusMapping[buildLog.status]);
+          hpeStatusMapping[buildLog.status]);
       });
   }
 
   static _childSteps(build) {
-    return build.ref.child('steps')
-      .rx_onChildChanged()
+    return FirebaseRx.onChildChanged(build.ref.child('steps'))
       .filter(snapshot => {
         const step = snapshot.val();
-        return _.has(_hpePipelineStepMapping, step.name) &&
-          _.has(_hpeStatusMapping, step.status);
+        return _.has(hpePipelineStepMapping, step.name) &&
+          _.has(hpeStatusMapping, step.status);
       })
       .map(snapshot => {
         const step = snapshot.val();
         return new BuildStep(
-          _hpePipelineStepMapping[step.name],
+          hpePipelineStepMapping[step.name],
           step.creationTimeStamp * 1000,
           (step.finishTimeStamp - step.creationTimeStamp) * 1000,
           'finished',
-          _hpeStatusMapping[step.status]);
+          hpeStatusMapping[step.status]);
       });
   }
 }
-
-export default BuildStep;

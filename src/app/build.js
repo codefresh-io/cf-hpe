@@ -1,14 +1,15 @@
 import _ from 'lodash';
 import Rx from 'rx';
-import 'firebase-rx';
 import Firebase from 'firebase';
-import Model from './model';
-import Logger from 'lib/logger';
-import config from './config';
+import { FirebaseRx } from 'firebase-rx';
+import { Logger } from 'lib/logger';
+import { Model } from 'app/model';
+import { HpeConfig } from 'app/hpe-config';
 
-const _logger = Logger.getLogger('build');
+const logger = Logger.getLogger('Build');
 
-class Build {
+export class Build {
+
   constructor(ref, id, name, account, service) {
     this.ref = ref;
     this.id = id;
@@ -20,12 +21,14 @@ class Build {
 
   static builds() {
     return Build._openBuildLogsRef()
-      .flatMap(buildLogsRef => buildLogsRef
-        .orderByChild('data/started')
-        .startAt(_.now() / 1000)
-        .rx_onChildAdded())
+      .flatMap(buildLogsRef => {
+        const query = buildLogsRef
+          .orderByChild('data/started')
+          .startAt(_.now() / 1000);
+        return FirebaseRx.onChildAdded(query);
+      })
       .flatMap(snapshot => {
-        _logger.info('New build log. build (%s)', snapshot.key());
+        logger.info('New build log. build (%s)', snapshot.key());
         return Rx.Observable.zip(
           Build._findAccount(snapshot),
           Build._findService(snapshot),
@@ -40,11 +43,12 @@ class Build {
 
   static _openBuildLogsRef() {
     return Rx.Observable
-      .start(() => new Firebase(config.firebaseBuildLogsUrl))
+      .start(() => new Firebase(HpeConfig.firebaseBuildLogsUrl))
       .flatMap(buildLogs => {
-        _logger.info('Open build logs ref. url (%s)', buildLogs.toString());
-        return buildLogs.rx_authWithSecretToken(
-          config.firebaseSecret,
+        logger.info('Open build logs ref. url (%s)', buildLogs.toString());
+        return FirebaseRx.authWithSecretToken(
+          buildLogs,
+          HpeConfig.firebaseSecret,
           'hpe-service',
           { admin: true });
       });
@@ -57,10 +61,10 @@ class Build {
   static _findAccount(buildLogSnapshot) {
     return Rx.Observable
       .fromPromise(() => Model.Account.findOne(
-        { _id: Model.objectId(buildLogSnapshot.val().accountId) }))
+        { _id: Model.toObjectId(buildLogSnapshot.val().accountId) }))
       .filter(account => {
         if (!account) {
-          _logger.warn('Build account not found. build (%s)', buildLogSnapshot.key());
+          logger.warn('Build account not found. build (%s)', buildLogSnapshot.key());
           return false;
         }
 
@@ -73,21 +77,21 @@ class Build {
   static _findService(buildLogSnapshot) {
     return Rx.Observable
       .fromPromise(() => Model.Build.findOne(
-        { progress_id: Model.objectId(buildLogSnapshot.key()) },
+        { progress_id: Model.toObjectId(buildLogSnapshot.key()) },
         'serviceId'))
       .filter(progress => {
         if (!progress) {
-          _logger.warn('Build progress not found. build (%s)', buildLogSnapshot.key());
+          logger.warn('Build progress not found. build (%s)', buildLogSnapshot.key());
           return false;
         }
 
         return true;
       })
       .flatMap(progress => Model.Service.findOne(
-        { _id: Model.objectId(progress.get('serviceId')) }))
+        { _id: Model.toObjectId(progress.get('serviceId')) }))
       .filter(service => {
         if (!service) {
-          _logger.warn('Build service not found. build (%s)', buildLogSnapshot.key());
+          logger.warn('Build service not found. build (%s)', buildLogSnapshot.key());
           return false;
         }
 
@@ -96,5 +100,3 @@ class Build {
       .map(service => service.toObject());
   }
 }
-
-export default Build;

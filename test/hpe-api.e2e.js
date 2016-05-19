@@ -3,7 +3,7 @@
 /* eslint-disable prefer-arrow-callback */
 import './config.env';
 import _ from 'lodash';
-import Util from 'util';
+import util from 'util';
 import { expect } from 'chai';
 import { HpeApi, HpeApiPipeline } from 'lib/index';
 
@@ -51,7 +51,7 @@ describe('HpeApi', function () {
   });
 
   it('Should create a CI server', function (done) {
-    const serverName = Util.format('Codefresh %d', _.now());
+    const serverName = util.format('Codefresh %d', _.now());
     const serverInstanceId = _.kebabCase(serverName);
 
     const server = {
@@ -88,7 +88,7 @@ describe('HpeApi', function () {
   });
 
   it('Should create a CI server pipeline ', function (done) {
-    const pipelineName = Util.format('Pipeline %d', _.now());
+    const pipelineName = util.format('Pipeline %d', _.now());
     const pipelineId = _.kebabCase(pipelineName);
 
     const pipeline = {
@@ -124,7 +124,7 @@ describe('HpeApi', function () {
   });
 
   it('Should report pipeline status as "running"', function (done) {
-    const buildName = Util.format('Build %d', _.now());
+    const buildName = util.format('Build %d', _.now());
     const buildId = _.kebabCase(buildName);
 
     const stepStatus = {

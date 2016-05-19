@@ -3,9 +3,12 @@ import eslint from 'gulp-eslint';
 import babel from 'gulp-babel';
 import mocha from 'gulp-mocha';
 import bump from 'gulp-bump';
+import runSequence from 'run-sequence';
 import del from 'del';
 
-const DIST_PATH = 'dist';
+gulp.task('watch', () => {
+  gulp.watch(['src/**/*.js'], ['build']);
+});
 
 gulp.task('lint', () =>
   gulp.src(['src/**/*.js', 'test/**/*.js'])
@@ -14,19 +17,27 @@ gulp.task('lint', () =>
     .pipe(eslint.failAfterError()));
 
 gulp.task('test', ['lint'], () =>
-  gulp.src(['test/**/*.unit.js'])
+  gulp.src(['test/**/*.test.js'], { read: false })
     .pipe(mocha()));
 
-gulp.task('clean', () =>
-  del([DIST_PATH]));
-
-gulp.task('build', ['clean'], () =>
-  gulp.src(['src/**/*.js'])
-    .pipe(babel())
-    .pipe(gulp.dest(DIST_PATH)));
-
-gulp.task('release', ['build'], () => {
+gulp.task('bump-version', () => {
   gulp.src(['./package.json'])
     .pipe(bump())
     .pipe(gulp.dest('./'));
+});
+
+gulp.task('clean', () =>
+  del(['dist']));
+
+gulp.task('build', () =>
+  gulp.src(['src/**/*.js'])
+    .pipe(babel())
+    .pipe(gulp.dest('dist')));
+
+gulp.task('release', callback => {
+  runSequence(
+    'bump-version',
+    'clean',
+    'build',
+    callback);
 });

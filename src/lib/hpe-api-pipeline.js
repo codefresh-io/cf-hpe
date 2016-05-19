@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import util from 'util';
 
-const _pipelineSteps = [
+const pipelineSteps = [
   {
     id: 'pipeline',
     name: 'Codefresh Build',
@@ -36,9 +36,9 @@ const _pipelineSteps = [
   },
 ];
 
-class HpeApiPipeline {
+export class HpeApiPipeline {
   static steps() {
-    return _pipelineSteps;
+    return pipelineSteps;
   }
 
   static jobId(pipelineId, stepId) {
@@ -59,4 +59,3 @@ class HpeApiPipeline {
   }
 }
 
-export default HpeApiPipeline;

@@ -1,6 +1,6 @@
 import config from '12factor-config';
 
-export default config({
+export const hpeApiConfig = config({
   hpeServerUrl: {
     env: 'CF_HPE_SERVER_URL',
     type: 'string',

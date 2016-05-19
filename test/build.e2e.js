@@ -4,8 +4,8 @@
 /* eslint-disable no-unused-expressions */
 import './config.env';
 import { expect } from 'chai';
-import Build from 'app/build';
-import BuildStep from 'app/build-step';
+import { Build } from 'app/build';
+import { BuildStep } from 'app/build-step';
 
 describe('Build', function () {
   this.slow(2000);
