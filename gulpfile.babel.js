@@ -3,12 +3,9 @@ import eslint from 'gulp-eslint';
 import babel from 'gulp-babel';
 import mocha from 'gulp-mocha';
 import bump from 'gulp-bump';
+import sourcemaps from 'gulp-sourcemaps';
 import runSequence from 'run-sequence';
 import del from 'del';
-
-gulp.task('watch', () => {
-  gulp.watch(['src/**/*.js'], ['build']);
-});
 
 gulp.task('lint', () =>
   gulp.src(['src/**/*.js', 'test/**/*.js'])
@@ -16,7 +13,7 @@ gulp.task('lint', () =>
     .pipe(eslint.format())
     .pipe(eslint.failAfterError()));
 
-gulp.task('test', ['lint'], () =>
+gulp.task('test', () =>
   gulp.src(['test/**/*.test.js'], { read: false })
     .pipe(mocha()));
 
@@ -31,7 +28,9 @@ gulp.task('clean', () =>
 
 gulp.task('build', () =>
   gulp.src(['src/**/*.js'])
+    .pipe(sourcemaps.init())
     .pipe(babel())
+    .pipe(sourcemaps.write())
     .pipe(gulp.dest('dist')));
 
 gulp.task('release', callback => {
