@@ -86,7 +86,7 @@ var HpeApi = exports.HpeApi = function () {
     key: 'findCiServer',
     value: function findCiServer(session, instanceId) {
       var options = {
-        uri: _util2.default.format('%s/ci_servers/', HpeApi._getWorkspaceUri(session)),
+        uri: _util2.default.format('%s/ci_servers/', HpeApi.getWorkspaceUri(session)),
         json: true
       };
 
@@ -111,7 +111,7 @@ var HpeApi = exports.HpeApi = function () {
       };
 
       var options = {
-        uri: _util2.default.format('%s/ci_servers/', HpeApi._getWorkspaceUri(session)),
+        uri: _util2.default.format('%s/ci_servers/', HpeApi.getWorkspaceUri(session)),
         json: true,
         body: {
           data: [data]
@@ -141,7 +141,7 @@ var HpeApi = exports.HpeApi = function () {
       };
 
       var options = {
-        uri: _util2.default.format('%s/pipelines/', HpeApi._getWorkspaceUri(session)),
+        uri: _util2.default.format('%s/pipelines/', HpeApi.getWorkspaceUri(session)),
         json: true,
         body: {
           data: [data]
@@ -181,7 +181,7 @@ var HpeApi = exports.HpeApi = function () {
       }
 
       var options = {
-        uri: _util2.default.format('%s/analytics/ci/builds/', HpeApi._getWorkspaceUri(session)),
+        uri: _util2.default.format('%s/analytics/ci/builds/', HpeApi.getWorkspaceUri(session)),
         json: true,
         body: data
       };
@@ -227,7 +227,7 @@ var HpeApi = exports.HpeApi = function () {
       });
 
       var options = {
-        uri: _util2.default.format('%s/test-results/', HpeApi._getWorkspaceUri(session)),
+        uri: _util2.default.format('%s/test-results/', HpeApi.getWorkspaceUri(session)),
         'content-type': 'application/xml',
         body: data
       };

@@ -58,9 +58,9 @@ var BuildStep = exports.BuildStep = function () {
     key: 'steps',
     value: function steps(build) {
       logger.info('Processing build log steps. build (%s) service (%s)', build.id, build.name);
-      var buildRunningStep = BuildStep._runningStep(build);
-      var finishedStep = BuildStep._finishedStep(build);
-      var childSteps = BuildStep._childSteps(build).takeUntil(finishedStep);
+      var buildRunningStep = BuildStep.runningStep(build);
+      var finishedStep = BuildStep.finishedStep(build);
+      var childSteps = BuildStep.childSteps(build).takeUntil(finishedStep);
 
       return _rx2.default.Observable.concat(buildRunningStep, childSteps, finishedStep).timeout(_hpeConfig.HpeConfig.buildTimeout * 1000).catch(function (error) {
         logger.error('Build failed. build (%s) service (%s) error (%s)', build.id, build.name, error);

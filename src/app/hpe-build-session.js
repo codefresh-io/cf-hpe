@@ -6,6 +6,7 @@ import { Logger } from 'lib/logger';
 const logger = Logger.getLogger('HpeBuildSession');
 
 export class HpeBuildSession {
+
   constructor(build, session, pipeline) {
     this.build = build;
     this.session = session;
@@ -17,8 +18,9 @@ export class HpeBuildSession {
       .start(() => logger.info('Open hpe build session. build (%s)', build.id))
       .flatMap(HpeApi.connect())
       .flatMap(session =>
-        HpeBuildSession._openHpeCiServer(session, build)
-          .flatMap(ciServer => HpeBuildSession._openHpePipeline(session, ciServer, build))
+        HpeBuildSession
+          .openHpeCiServer(session, build)
+          .flatMap(ciServer => HpeBuildSession.openHpePipeline(session, ciServer, build))
           .map(pipeline => new HpeBuildSession(build, session, pipeline)));
   }
 
@@ -41,7 +43,7 @@ export class HpeBuildSession {
     return HpeApi.reportPipelineStepStatus(buildSession.session, stepStatus);
   }
 
-  static _openHpeCiServer(session, build) {
+  static openHpeCiServer(session, build) {
     const ciServerData = {
       name: build.account.name,
       instanceId: build.account._id.toString(),
@@ -62,7 +64,7 @@ export class HpeBuildSession {
       }));
   }
 
-  static _openHpePipeline(session, ciServer, build) {
+  static openHpePipeline(session, ciServer, build) {
     const pipelineData = {
       id: build.service._id.toString(),
       name: build.service.name,

@@ -42,8 +42,8 @@ var HpeBuildSession = exports.HpeBuildSession = function () {
       return _rx2.default.Observable.start(function () {
         return logger.info('Open hpe build session. build (%s)', build.id);
       }).flatMap(_hpeApi.HpeApi.connect()).flatMap(function (session) {
-        return HpeBuildSession._openHpeCiServer(session, build).flatMap(function (ciServer) {
-          return HpeBuildSession._openHpePipeline(session, ciServer, build);
+        return HpeBuildSession.openHpeCiServer(session, build).flatMap(function (ciServer) {
+          return HpeBuildSession.openHpePipeline(session, ciServer, build);
         }).map(function (pipeline) {
           return new HpeBuildSession(build, session, pipeline);
         });

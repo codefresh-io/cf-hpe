@@ -47,7 +47,7 @@ export class HpeApi {
       });
   }
 
-  static _getWorkspaceUri(session) {
+  static getWorkspaceUri(session) {
     return Util.format(
       '%s/api/shared_spaces/%s/workspaces/%s',
       session.hpeApiConfig.hpeServerUrl,
@@ -57,7 +57,7 @@ export class HpeApi {
 
   static findCiServer(session, instanceId) {
     const options = {
-      uri: Util.format('%s/ci_servers/', HpeApi._getWorkspaceUri(session)),
+      uri: Util.format('%s/ci_servers/', HpeApi.getWorkspaceUri(session)),
       json: true,
     };
 
@@ -85,7 +85,7 @@ export class HpeApi {
     };
 
     const options = {
-      uri: Util.format('%s/ci_servers/', HpeApi._getWorkspaceUri(session)),
+      uri: Util.format('%s/ci_servers/', HpeApi.getWorkspaceUri(session)),
       json: true,
       body: {
         data: [data],
@@ -118,7 +118,7 @@ export class HpeApi {
     };
 
     const options = {
-      uri: Util.format('%s/pipelines/', HpeApi._getWorkspaceUri(session)),
+      uri: Util.format('%s/pipelines/', HpeApi.getWorkspaceUri(session)),
       json: true,
       body: {
         data: [data],
@@ -163,7 +163,7 @@ export class HpeApi {
     }
 
     const options = {
-      uri: Util.format('%s/analytics/ci/builds/', HpeApi._getWorkspaceUri(session)),
+      uri: Util.format('%s/analytics/ci/builds/', HpeApi.getWorkspaceUri(session)),
       json: true,
       body: data,
     };
@@ -212,7 +212,7 @@ export class HpeApi {
     });
 
     const options = {
-      uri: Util.format('%s/test-results/', HpeApi._getWorkspaceUri(session)),
+      uri: Util.format('%s/test-results/', HpeApi.getWorkspaceUri(session)),
       'content-type': 'application/xml',
       body: data,
     };

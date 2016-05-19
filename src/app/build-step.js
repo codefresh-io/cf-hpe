@@ -33,9 +33,9 @@ export class BuildStep {
 
   static steps(build) {
     logger.info('Processing build log steps. build (%s) service (%s)', build.id, build.name);
-    const buildRunningStep = BuildStep._runningStep(build);
-    const finishedStep = BuildStep._finishedStep(build);
-    const childSteps = BuildStep._childSteps(build).takeUntil(finishedStep);
+    const buildRunningStep = BuildStep.runningStep(build);
+    const finishedStep = BuildStep.finishedStep(build);
+    const childSteps = BuildStep.childSteps(build).takeUntil(finishedStep);
 
     return Rx.Observable
       .concat(
@@ -72,7 +72,7 @@ export class BuildStep {
       });
   }
 
-  static _runningStep(build) {
+  static runningStep(build) {
     return FirebaseRx.onValue(build.ref.child('data/started'))
       .filter(snapshot => snapshot.exists())
       .take(1)
@@ -86,7 +86,7 @@ export class BuildStep {
       });
   }
 
-  static _finishedStep(build) {
+  static finishedStep(build) {
     return FirebaseRx.onValue(build.ref.child('data/finished'))
       .filter(snapshot => snapshot.exists())
       .take(1)
@@ -107,7 +107,7 @@ export class BuildStep {
       });
   }
 
-  static _childSteps(build) {
+  static childSteps(build) {
     return FirebaseRx.onChildChanged(build.ref.child('steps'))
       .filter(snapshot => {
         const step = snapshot.val();

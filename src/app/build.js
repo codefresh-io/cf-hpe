@@ -20,7 +20,8 @@ export class Build {
   }
 
   static builds() {
-    return Build._openBuildLogsRef()
+    return Build
+      .openBuildLogsRef()
       .flatMap(buildLogsRef => {
         const query = buildLogsRef
           .orderByChild('data/started')
@@ -30,8 +31,8 @@ export class Build {
       .flatMap(snapshot => {
         logger.info('New build log. build (%s)', snapshot.key());
         return Rx.Observable.zip(
-          Build._findAccount(snapshot),
-          Build._findService(snapshot),
+          Build.findAccount(snapshot),
+          Build.findService(snapshot),
           (account, service) => new Build(
             snapshot.ref(),
             snapshot.key(),
@@ -41,7 +42,7 @@ export class Build {
       });
   }
 
-  static _openBuildLogsRef() {
+  static openBuildLogsRef() {
     return Rx.Observable
       .start(() => new Firebase(HpeConfig.firebaseBuildLogsUrl))
       .flatMap(buildLogs => {
@@ -54,11 +55,11 @@ export class Build {
       });
   }
 
-  static _isHpeIntegrationAccount(account) {
+  static isHpeIntegrationAccount(account) {
     return true || account.integrations.hpe && account.integrations.hpe.active;
   }
 
-  static _findAccount(buildLogSnapshot) {
+  static findAccount(buildLogSnapshot) {
     return Rx.Observable
       .fromPromise(() => Model.Account.findOne(
         { _id: Model.toObjectId(buildLogSnapshot.val().accountId) }))
@@ -71,10 +72,10 @@ export class Build {
         return true;
       })
       .map(account => account.toObject())
-      .filter(account => Build._isHpeIntegrationAccount(account));
+      .filter(account => Build.isHpeIntegrationAccount(account));
   }
 
-  static _findService(buildLogSnapshot) {
+  static findService(buildLogSnapshot) {
     return Rx.Observable
       .fromPromise(() => Model.Build.findOne(
         { progress_id: Model.toObjectId(buildLogSnapshot.key()) },

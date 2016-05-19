@@ -48,12 +48,12 @@ var Build = exports.Build = function () {
   _createClass(Build, null, [{
     key: 'builds',
     value: function builds() {
-      return Build._openBuildLogsRef().flatMap(function (buildLogsRef) {
+      return Build.openBuildLogsRef().flatMap(function (buildLogsRef) {
         var query = buildLogsRef.orderByChild('data/started').startAt(_lodash2.default.now() / 1000);
         return _firebaseRx.FirebaseRx.onChildAdded(query);
       }).flatMap(function (snapshot) {
         logger.info('New build log. build (%s)', snapshot.key());
-        return _rx2.default.Observable.zip(Build._findAccount(snapshot), Build._findService(snapshot), function (account, service) {
+        return _rx2.default.Observable.zip(Build.findAccount(snapshot), Build.findService(snapshot), function (account, service) {
           return new Build(snapshot.ref(), snapshot.key(), service.name, account, service);
         });
       });
@@ -88,7 +88,7 @@ var Build = exports.Build = function () {
       }).map(function (account) {
         return account.toObject();
       }).filter(function (account) {
-        return Build._isHpeIntegrationAccount(account);
+        return Build.isHpeIntegrationAccount(account);
       });
     }
   }, {
