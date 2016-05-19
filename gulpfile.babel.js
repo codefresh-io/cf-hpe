@@ -3,6 +3,7 @@ import eslint from 'gulp-eslint';
 import babel from 'gulp-babel';
 import mocha from 'gulp-mocha';
 import bump from 'gulp-bump';
+import sourcemaps from 'gulp-sourcemaps';
 import runSequence from 'run-sequence';
 import del from 'del';
 
@@ -31,7 +32,9 @@ gulp.task('clean', () =>
 
 gulp.task('build', () =>
   gulp.src(['src/**/*.js'])
+    .pipe(sourcemaps.init())
     .pipe(babel())
+    .pipe(sourcemaps.write())
     .pipe(gulp.dest('dist')));
 
 gulp.task('release', callback => {
