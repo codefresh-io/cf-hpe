@@ -6,7 +6,7 @@ import { Logger } from 'lib/logger';
 import { Model } from 'app/model';
 import { HpeConfig } from 'app/hpe-config';
 
-const logger = Logger.getLogger('Build');
+const logger = Logger.create('Build');
 
 export class Build {
 

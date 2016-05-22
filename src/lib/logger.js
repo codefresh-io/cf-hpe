@@ -1,42 +1,29 @@
 /* eslint-disable no-console */
+import R from 'ramda';
 import util from 'util';
 
-export class Logger {
-  static getLogger(category) {
-    return new Logger(category);
-  }
+export const Logger = {};
 
-  constructor(category) {
-    this.category = category;
-  }
+const logFormatLine = (level, category, message, ...args) =>
+  console[level](util.format(
+    '[%s] [%s] %s - %s',
+    new Date().toISOString(),
+    level,
+    category,
+    R.apply(util.format, [message, ...args])));
 
-  debug(message, ...values) {
-    this.log('debug', util.format(message, ...values));
-  }
+Logger.log = R.curry(logFormatLine);
+Logger.debug = Logger.log('debug');
+Logger.info = Logger.log('info');
+Logger.warn = Logger.log('warn');
+Logger.error = Logger.log('error');
+Logger.exception = Logger.log('exception');
 
-  info(message, ...values) {
-    this.log('info', util.format(message, ...values));
-  }
-
-  warn(message, ...values) {
-    this.log('warn', util.format(message, ...values));
-  }
-
-  error(message, ...values) {
-    this.log('error', util.format(message, ...values));
-  }
-
-  exception(error) {
-    this.log('error', error.stack);
-  }
-
-  log(level, message) {
-    const format = util.format(
-      '[%s] [%s] %s - %s',
-      new Date().toISOString(),
-      level,
-      this.category,
-      message);
-    console[level](format);
-  }
-}
+Logger.create = (category) => ({
+  category,
+  debug: Logger.debug(category),
+  info: Logger.info(category),
+  warn: Logger.warn(category),
+  error: Logger.error(category),
+  exception: Logger.exception(category),
+});

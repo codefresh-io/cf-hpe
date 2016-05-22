@@ -4,7 +4,7 @@ import { FirebaseRx } from 'firebase-rx';
 import { Logger } from 'lib/logger';
 import { HpeConfig } from 'app/hpe-config';
 
-const logger = Logger.getLogger('BuildStep');
+const logger = Logger.create('BuildStep');
 
 const hpeStatusMapping = {
   success: 'success',

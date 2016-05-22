@@ -3,7 +3,7 @@ import Rx from 'rx';
 import { HpeApi } from 'lib/hpe-api';
 import { Logger } from 'lib/logger';
 
-const logger = Logger.getLogger('HpeBuildSession');
+const logger = Logger.create('HpeBuildSession');
 
 export class HpeBuildSession {
 

@@ -11,7 +11,7 @@
   "dependencies": {
     "12factor-config": "^1.1.0",
     "firebase": "^2.4.2",
-    "firebase-rx": "git+https://github.com/liorshalev01/firebase-rx.git#1.0.3",
+    "firebase-rx": "git+https://github.com/liorshalev01/firebase-rx.git#1.0.4",
     "lodash": "^4.11.1",
     "mongoose": "^4.4.16",
     "node-uuid": "^1.4.7",
