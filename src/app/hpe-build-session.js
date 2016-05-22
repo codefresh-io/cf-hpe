@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import Rx from 'rx';
-import { HpeApi } from 'lib/hpe-api';
+import { HpeApi } from 'cf-hpe-api';
 import { Logger } from 'lib/logger';
 
 const logger = Logger.create('HpeBuildSession');

@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "12factor-config": "^1.1.0",
+    "cf-hpe-api": "git+https://github.com/liorshalev01/cf-hpe-api.git#develop",
     "firebase": "^2.4.2",
     "firebase-rx": "git+https://github.com/liorshalev01/firebase-rx.git#1.0.4",
     "lodash": "^4.11.1",
@@ -39,7 +40,6 @@
     "gulp-eslint": "^2.0.0",
     "gulp-mocha": "^2.2.0",
     "gulp-process-env": "0.0.1",
-    "gulp-sourcemaps": "^1.6.0",
     "mocha": "^2.4.5",
     "run-sequence": "^1.1.5",
     "sinon": "^1.17.4"
