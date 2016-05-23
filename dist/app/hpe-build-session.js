@@ -54,7 +54,7 @@ var HpeBuildSession = exports.HpeBuildSession = function () {
     value: function reportStepStatus(buildSession, buildStep) {
       var stepStatus = {
         stepId: buildStep.stepId,
-        serverInstanceId: buildSession.pipeline.serverInstanceId,
+        ciServerId: buildSession.pipeline.ciServerId,
         pipelineId: buildSession.pipeline.id,
         buildId: buildSession.build.id,
         buildName: buildSession.build.name,
@@ -96,7 +96,7 @@ var HpeBuildSession = exports.HpeBuildSession = function () {
       var pipelineData = {
         id: build.service._id.toString(),
         name: build.service.name,
-        serverId: ciServer.id
+        ciServerHpeId: ciServer.id
       };
 
       return _cfHpeApi.HpeApi.createPipeline(session, pipelineData).catch(function (error) {
@@ -107,7 +107,7 @@ var HpeBuildSession = exports.HpeBuildSession = function () {
         return _rx2.default.Observable.just();
       }).map(function () {
         return _extends({}, pipelineData, {
-          serverInstanceId: ciServer.instanceId
+          ciServerId: ciServer.instanceId
         });
       });
     }

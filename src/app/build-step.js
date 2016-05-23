@@ -23,6 +23,7 @@ const hpePipelineStepMapping = {
 };
 
 export class BuildStep {
+
   constructor(stepId, startTime, duration, status, result) {
     this.stepId = stepId;
     this.startTime = startTime;
@@ -54,7 +55,7 @@ export class BuildStep {
           new BuildStep(
             'pipeline',
             build.startTime,
-            _.now() - build.startTime,
+            Date.now() - build.startTime,
             'finished',
             'failure'));
       })
@@ -80,7 +81,7 @@ export class BuildStep {
         return new BuildStep(
           'pipeline',
           build.startTime,
-          null,
+          0,
           'running',
           'unavailable');
       });
@@ -101,7 +102,7 @@ export class BuildStep {
         return new BuildStep(
           'pipeline',
           build.startTime,
-          _.now() - build.startTime,
+          Date.now() - build.startTime,
           'finished',
           hpeStatusMapping[buildLog.status]);
       });
