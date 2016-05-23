@@ -40,7 +40,7 @@ Build.builds = () =>
           account,
           service,
           startTime: _.now(),
-        }))
+        }));
     });
 
 Build.openBuildLogsRef = () =>
