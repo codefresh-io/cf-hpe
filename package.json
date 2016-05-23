@@ -14,9 +14,9 @@
     "firebase": "^2.4.2",
     "firebase-rx": "git+https://github.com/liorshalev01/firebase-rx.git#1.0.4",
     "immutable": "^3.8.1",
-    "lodash": "^4.11.1",
     "mongoose": "^4.4.16",
     "node-uuid": "^1.4.7",
+    "ramda": "^0.21.0",
     "request": "^2.72.0",
     "rx": "^4.1.0",
     "xml2js": "^0.4.16"

@@ -1,7 +1,7 @@
 /* eslint-disable new-cap */
 import Rx from 'rx';
 import { Record } from 'immutable';
-import { HpeApi } from 'cf-hpe-api';
+import { HpeApiSession, HpeApiBuildSession } from 'cf-hpe-api';
 import { Logger } from 'lib/logger';
 
 const logger = Logger.create('BuildSession');

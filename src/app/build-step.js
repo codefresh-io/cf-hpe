@@ -1,5 +1,5 @@
 /* eslint-disable new-cap */
-import _ from 'lodash';
+import R from 'ramda';
 import Rx from 'rx';
 import { Record } from 'immutable';
 import { FirebaseRx } from 'firebase-rx';
@@ -94,7 +94,7 @@ BuildStep.finishedStep = (build) =>
     .flatMap(() => FirebaseRx.onValue(build.ref))
     .filter(snapshot => {
       const buildLog = snapshot.val();
-      return _.has(hpeStatusMapping, buildLog.status);
+      return R.has(buildLog.status, hpeStatusMapping);
     })
     .take(1)
     .map((snapshot) => {
@@ -112,8 +112,8 @@ BuildStep.childSteps = (build) =>
   FirebaseRx.onChildChanged(build.ref.child('steps'))
     .filter(snapshot => {
       const step = snapshot.val();
-      return _.has(hpePipelineStepMapping, step.name) &&
-        _.has(hpeStatusMapping, step.status);
+      return R.has(step.name, hpePipelineStepMapping) &&
+        R.has(step.status, hpeStatusMapping);
     })
     .map(snapshot => {
       const step = snapshot.val();
