@@ -75,7 +75,8 @@ BuildStep.steps = (build) => {
 };
 
 BuildStep.runningStep = (build) =>
-  FirebaseRx.onValue(build.ref.child('data/started'))
+  FirebaseRx
+    .onValue(build.ref.child('data/started'))
     .filter(snapshot => snapshot.exists())
     .take(1)
     .map(() =>
@@ -88,7 +89,8 @@ BuildStep.runningStep = (build) =>
       }));
 
 BuildStep.finishedStep = (build) =>
-  FirebaseRx.onValue(build.ref.child('data/finished'))
+  FirebaseRx
+    .onValue(build.ref.child('data/finished'))
     .filter(snapshot => snapshot.exists())
     .take(1)
     .flatMap(() => FirebaseRx.onValue(build.ref))
@@ -109,7 +111,8 @@ BuildStep.finishedStep = (build) =>
     });
 
 BuildStep.childSteps = (build) =>
-  FirebaseRx.onChildChanged(build.ref.child('steps'))
+  FirebaseRx
+    .onChildChanged(build.ref.child('steps'))
     .filter(snapshot => {
       const step = snapshot.val();
       return R.has(step.name, hpePipelineStepMapping) &&

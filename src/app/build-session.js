@@ -11,8 +11,8 @@ export const BuildSession = Record({
   hpeApiBuildSession: null,
 });
 
-BuildSession.openBuildSession = (build) => {
-  return Rx.Observable
+BuildSession.openBuildSession = (build) =>
+  Rx.Observable
     .start(() => logger.info('Open build session. build (%s)', build.id))
     .flatMap(HpeApiSession.create())
     .flatMap(hpeApiSession => BuildSession.openHpeCiServer(hpeApiSession, build)
@@ -27,17 +27,15 @@ BuildSession.openBuildSession = (build) => {
           build,
           hpeApiBuildSession,
         }))));
-};
 
-BuildSession.reportStepStatus = (buildSession, buildStep) => {
-  return HpeApiBuildSession.reportBuildPipelineStepStatus(
+BuildSession.reportStepStatus = (buildSession, buildStep) =>
+  HpeApiBuildSession.reportBuildPipelineStepStatus(
     buildSession.hpeApiBuildSession,
     buildStep.stepId,
     buildStep.startTime,
     buildStep.duration,
     buildStep.status,
     buildStep.result);
-};
 
 BuildSession.openHpeCiServer = (session, build) => {
   const id = build.account._id.toString();
