@@ -1,5 +1,4 @@
 /* eslint-disable new-cap */
-import _ from 'lodash';
 import Rx from 'rx';
 import { Record } from 'immutable';
 import Firebase from 'firebase';
@@ -25,7 +24,7 @@ Build.builds = () =>
     .flatMap(buildLogsRef => {
       const query = buildLogsRef
         .orderByChild('data/started')
-        .startAt(_.now() / 1000);
+        .startAt(Date.now() / 1000);
       return FirebaseRx.onChildAdded(query);
     })
     .flatMap(snapshot => {
@@ -39,7 +38,7 @@ Build.builds = () =>
           name: service.name,
           account,
           service,
-          startTime: _.now(),
+          startTime: Date.now(),
         }));
     });
 

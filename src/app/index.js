@@ -1,9 +1,9 @@
 import Build from './build';
 import BuildStep from './build-step';
-import HpeBuildSession from './hpe-build-session';
+import BuildSession from './build-session';
 
 export {
   Build,
   BuildStep,
-  HpeBuildSession,
+  BuildSession,
 };
