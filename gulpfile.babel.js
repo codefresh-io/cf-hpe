@@ -3,7 +3,6 @@ import eslint from 'gulp-eslint';
 import babel from 'gulp-babel';
 import mocha from 'gulp-mocha';
 import bump from 'gulp-bump';
-import sourcemaps from 'gulp-sourcemaps';
 import runSequence from 'run-sequence';
 import del from 'del';
 
@@ -14,7 +13,7 @@ gulp.task('lint', () =>
     .pipe(eslint.failAfterError()));
 
 gulp.task('test', () =>
-  gulp.src(['test/**/*.test.js'], { read: false })
+  gulp.src(['test/**/*.unit.js'], { read: false })
     .pipe(mocha()));
 
 gulp.task('bump-version', () => {
@@ -26,11 +25,9 @@ gulp.task('bump-version', () => {
 gulp.task('clean', () =>
   del(['dist']));
 
-gulp.task('build', () =>
+gulp.task('build', ['clean'], () =>
   gulp.src(['src/**/*.js'])
-    .pipe(sourcemaps.init())
     .pipe(babel())
-    .pipe(sourcemaps.write())
     .pipe(gulp.dest('dist')));
 
 gulp.task('release', callback => {

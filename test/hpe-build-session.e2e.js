@@ -16,7 +16,7 @@ describe('BuildHpe', function () {
     Build.builds().take(1)
       .flatMap(build => {
         return HpeBuildSession
-          .openSession(build)
+          .openBuildSession(build)
           .doOnNext(hpeBuildSession => {
             expect(hpeBuildSession).to.not.be.null;
             done();
@@ -29,7 +29,7 @@ describe('BuildHpe', function () {
   it.only('Should report build steps status', function (done) {
     Build.builds()
       .take(10)
-      .flatMap(build => HpeBuildSession.openSession(build).flatMap(buildSession => {
+      .flatMap(build => HpeBuildSession.openBuildSession(build).flatMap(buildSession => {
         return BuildStep.steps(build).flatMap(step => {
           return HpeBuildSession.reportStepStatus(buildSession, step);
         });
