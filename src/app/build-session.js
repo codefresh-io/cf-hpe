@@ -1,7 +1,7 @@
 /* eslint-disable new-cap */
 import Rx from 'rx';
 import { Record } from 'immutable';
-import { HpeApiSession, HpeApiBuildSession, HpeApiTestResult } from 'cf-hpe-api';
+import { HpeApiSession, HpeApiBuildSession } from 'cf-hpe-api';
 import { Logger } from 'lib/logger';
 
 const logger = Logger.create('BuildSession');
@@ -42,10 +42,11 @@ BuildSession.reportBuildPipelineStepStatus = (buildSession, buildStep) => {
 };
 
 BuildSession.reportBuildPipelineTestResults = (buildSession, buildStep, testResult) => {
-  logger.info('Report build pipeline test result. build (%s) service (%s) test (%s)',
+  logger.info('Report build pipeline test result. build (%s) service (%s) test (%s) result (%s)',
     buildSession.build.id,
     buildSession.build.name,
-    testResult[0].name);
+    testResult[0].name,
+    testResult[0].status);
 
   return HpeApiBuildSession.reportBuildPipelineTestResults(
     buildSession.hpeApiBuildSession,

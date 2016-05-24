@@ -52,13 +52,13 @@ var BuildStep = exports.BuildStep = (0, _immutable.Record)({
   result: null
 });
 
-BuildStep.steps = function (build) {
-  logger.info('Processing build log steps. build (%s) service (%s)', build.id, build.name);
-  var buildRunningStep = BuildStep.runningStep(build);
-  var finishedStep = BuildStep.finishedStep(build);
-  var childSteps = BuildStep.childSteps(build).takeUntil(finishedStep);
+BuildStep.stepsFromBuild = function (build) {
+  logger.info('Start processing build log steps. build (%s) service (%s)', build.id, build.name);
+  var buildRunningStepObservable = BuildStep.runningStep(build).share();
+  var finishedStepObservable = BuildStep.finishedStep(build).share();
+  var childStepsObservable = BuildStep.childSteps(build).takeUntil(finishedStepObservable).share();
 
-  return _rx2.default.Observable.concat(buildRunningStep, childSteps, finishedStep).timeout(_hpeConfig.HpeConfig.buildTimeout * 1000).catch(function (error) {
+  return _rx2.default.Observable.concat(buildRunningStepObservable, childStepsObservable, finishedStepObservable).timeout(_hpeConfig.HpeConfig.buildTimeout * 1000).catch(function (error) {
     logger.error('Build failed. build (%s) service (%s) error (%s)', build.id, build.name, error);
 
     return _rx2.default.Observable.just(new BuildStep({
@@ -110,9 +110,15 @@ BuildStep.finishedStep = function (build) {
 };
 
 BuildStep.childSteps = function (build) {
-  return _firebaseRx.FirebaseRx.onChildChanged(build.ref.child('steps')).filter(function (snapshot) {
+  var stepsRef = build.ref.child('steps');
+  var stepAddedObservable = _firebaseRx.FirebaseRx.onChildAdded(stepsRef);
+  var stepChangedObservable = _firebaseRx.FirebaseRx.onChildChanged(stepsRef);
+
+  return _rx2.default.Observable.merge(stepAddedObservable, stepChangedObservable).filter(function (snapshot) {
     var step = snapshot.val();
     return _ramda2.default.has(step.name, hpePipelineStepMapping) && _ramda2.default.has(step.status, hpeStatusMapping);
+  }).distinct(function (snapshot) {
+    return snapshot.val().name;
   }).map(function (snapshot) {
     var step = snapshot.val();
     return new BuildStep({

@@ -4,6 +4,12 @@ import { BuildStep } from 'app/build-step';
 import { BuildSession } from 'app/build-session';
 import { HpeApiTestResult } from 'cf-hpe-api';
 
+const hpeTestResultMapping = {
+  success: 'Passed',
+  failure: 'Failed',
+  terminated: 'Failed',
+};
+
 const reportBuildPipelineStepStatus = (buildStepObservable, buildSession) => {
   buildStepObservable
     .flatMap(step => BuildSession.reportBuildPipelineStepStatus(buildSession, step))
@@ -15,13 +21,13 @@ const reportBuildPipelineTestResults = (buildStepObservable, buildSession) => {
     .filter(step => step.stepId === 'unit-test-script')
     .flatMap(step => {
       const testResult = HpeApiTestResult.create(
-        'Should pass integration test #2',
-        Date.now(),
-        1000,
-        'Failed',
-        'cf-hpe',
-        'test-2',
-        'hpe');
+        step.stepId,
+        step.startTime,
+        step.duration,
+        hpeTestResultMapping[step.result],
+        buildSession.build.name,
+        buildSession.build.name,
+        buildSession.build.name);
 
       return BuildSession.reportBuildPipelineTestResults(buildSession, step, [testResult]);
     })
