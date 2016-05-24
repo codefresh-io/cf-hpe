@@ -37,7 +37,7 @@ var Build = exports.Build = (0, _immutable.Record)({
   startTime: null
 });
 
-Build.builds = function () {
+Build.buildsFromFirebase = function () {
   return Build.openBuildLogsRef().flatMap(function (buildLogsRef) {
     var query = buildLogsRef.orderByChild('data/started').startAt(Date.now() / 1000);
     return _firebaseRx.FirebaseRx.onChildAdded(query);

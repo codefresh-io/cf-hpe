@@ -27,9 +27,9 @@ var BuildSession = exports.BuildSession = (0, _immutable.Record)({
   hpeApiBuildSession: null
 });
 
-BuildSession.openBuildSession = function (build) {
+BuildSession.createForBuild = function (build) {
   return _rx2.default.Observable.start(function () {
-    return logger.info('Open build session. build (%s)', build.id);
+    return logger.info('Open build session. build (%s) service (%s)', build.id, build.name);
   }).flatMap(_cfHpeApi.HpeApiSession.create()).flatMap(function (hpeApiSession) {
     return BuildSession.openHpeCiServer(hpeApiSession, build).flatMap(function (ciServer) {
       return BuildSession.openHpePipeline(hpeApiSession, build, ciServer).map(function (pipeline) {
@@ -49,6 +49,8 @@ BuildSession.reportBuildPipelineStepStatus = function (buildSession, buildStep) 
 };
 
 BuildSession.reportBuildPipelineTestResults = function (buildSession, buildStep, testResult) {
+  logger.info('Report build pipeline test result. build (%s) service (%s) test (%s) result (%s)', buildSession.build.id, buildSession.build.name, testResult[0].name, testResult[0].status);
+
   return _cfHpeApi.HpeApiBuildSession.reportBuildPipelineTestResults(buildSession.hpeApiBuildSession, buildStep.stepId, testResult);
 };
 
@@ -61,7 +63,7 @@ BuildSession.openHpeCiServer = function (session, build) {
       return _rx2.default.Observable.just(ciServer);
     }
 
-    logger.info('Create hpe ci server. build (%s)', build.id);
+    logger.info('Create hpe ci server. build (%s) name (%s)', build.id, name);
     return _cfHpeApi.HpeApiSession.createCiServer(session, id, name);
   }).map(function (ciServer) {
     return {

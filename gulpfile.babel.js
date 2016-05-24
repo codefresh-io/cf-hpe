@@ -3,6 +3,7 @@ import eslint from 'gulp-eslint';
 import babel from 'gulp-babel';
 import mocha from 'gulp-mocha';
 import bump from 'gulp-bump';
+import git from 'gulp-git';
 import runSequence from 'run-sequence';
 import del from 'del';
 
@@ -30,10 +31,18 @@ gulp.task('build', ['clean'], () =>
     .pipe(babel())
     .pipe(gulp.dest('dist')));
 
+gulp.task('git-commit-build', () =>
+  gulp.src('.')
+    .pipe(git.add())
+    .pipe(git.commit('Release build')));
+
+gulp.task('git-push-develop', (callback) =>
+  git.push('origin', 'develop', callback));
+
 gulp.task('release', callback => {
   runSequence(
-    'bump-version',
-    'clean',
     'build',
+    'git-commit-build',
+    'git-push-develop',
     callback);
 });

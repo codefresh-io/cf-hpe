@@ -5,7 +5,7 @@ import util from 'util';
 export const Logger = {};
 
 const logFormatLine = (level, category, message, ...args) =>
-  console.log(util.format(
+  console[level](util.format(
     '[%s] [%s] %s - %s',
     new Date().toISOString(),
     level,
