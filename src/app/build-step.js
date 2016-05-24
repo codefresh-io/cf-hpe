@@ -32,7 +32,7 @@ export const BuildStep = Record({
   result: null,
 });
 
-BuildStep.steps = (build) => {
+BuildStep.stepsFromBuild = (build) => {
   logger.info('Processing build log steps. build (%s) service (%s)', build.id, build.name);
   const buildRunningStep = BuildStep.runningStep(build);
   const finishedStep = BuildStep.finishedStep(build);

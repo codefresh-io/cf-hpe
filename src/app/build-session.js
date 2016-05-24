@@ -11,7 +11,7 @@ export const BuildSession = Record({
   hpeApiBuildSession: null,
 });
 
-BuildSession.create = (build) =>
+BuildSession.createForBuild = (build) =>
   Rx.Observable
     .start(() => logger.info('Open build session. build (%s)', build.id))
     .flatMap(HpeApiSession.create())

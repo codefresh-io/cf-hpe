@@ -18,7 +18,7 @@ export const Build = Record({
   startTime: null,
 });
 
-Build.builds = () =>
+Build.buildsFromFirebase = () =>
   Build
     .openBuildLogsRef()
     .flatMap(buildLogsRef => {
