@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "12factor-config": "^1.1.0",
-    "cf-hpe-api": "git+https://github.com/liorshalev01/cf-hpe-api.git#develop",
+    "cf-hpe-api": "git+https://github.com/liorshalev01/cf-hpe-api.git#0.0.5",
     "firebase": "^2.4.2",
     "firebase-rx": "git+https://github.com/liorshalev01/firebase-rx.git#1.0.5",
     "immutable": "^3.8.1",
