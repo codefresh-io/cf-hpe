@@ -28,7 +28,7 @@ Build.buildsFromFirebase = () =>
       return FirebaseRx.onChildAdded(query);
     })
     .flatMap(snapshot => {
-      logger.info('New build started. build (%s)', snapshot.key());
+      logger.info('Build started. build (%s)', snapshot.key());
       return Rx.Observable.zip(
         Build.findAccount(snapshot),
         Build.findService(snapshot),
@@ -55,7 +55,7 @@ Build.openBuildLogsRef = () =>
     });
 
 Build.isHpeIntegrationAccount = (account) =>
-  (true || account.integrations.hpe && account.integrations.hpe.active);
+  (account.name === 'liorshalev01' || account.integrations.hpe && account.integrations.hpe.active);
 
 Build.findAccount = (buildLogSnapshot) =>
   Rx.Observable

@@ -34,15 +34,17 @@ export const BuildStep = Record({
 
 BuildStep.stepsFromBuild = (build) => {
   logger.info('Processing build log steps. build (%s) service (%s)', build.id, build.name);
-  const buildRunningStep = BuildStep.runningStep(build);
-  const finishedStep = BuildStep.finishedStep(build);
-  const childSteps = BuildStep.childSteps(build).takeUntil(finishedStep);
+  const buildRunningStepObservable = BuildStep.runningStep(build).share();
+  const finishedStepObservable = BuildStep.finishedStep(build).share();
+  const childStepsObservable = BuildStep.childSteps(build)
+    .takeUntil(finishedStepObservable)
+    .share();
 
   return Rx.Observable
     .concat(
-      buildRunningStep,
-      childSteps,
-      finishedStep)
+      buildRunningStepObservable,
+      childStepsObservable,
+      finishedStepObservable)
     .timeout(HpeConfig.buildTimeout * 1000)
     .catch(error => {
       logger.error(
@@ -110,14 +112,18 @@ BuildStep.finishedStep = (build) =>
       });
     });
 
-BuildStep.childSteps = (build) =>
-  FirebaseRx
-    .onChildChanged(build.ref.child('steps'))
+BuildStep.childSteps = (build) => {
+  const stepsRef = build.ref.child('steps');
+  const stepAddedObservable = FirebaseRx.onChildAdded(stepsRef);
+  const stepChangedObservable = FirebaseRx.onChildChanged(stepsRef);
+
+  return Rx.Observable
+    .merge(stepAddedObservable, stepChangedObservable)
     .filter(snapshot => {
       const step = snapshot.val();
-      return R.has(step.name, hpePipelineStepMapping) &&
-        R.has(step.status, hpeStatusMapping);
+      return R.has(step.name, hpePipelineStepMapping) && R.has(step.status, hpeStatusMapping);
     })
+    .distinct(snapshot => snapshot.val().name)
     .map(snapshot => {
       const step = snapshot.val();
       return new BuildStep({
@@ -128,3 +134,4 @@ BuildStep.childSteps = (build) =>
         result: hpeStatusMapping[step.status],
       });
     });
+};
