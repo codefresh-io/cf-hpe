@@ -36,13 +36,13 @@ gulp.task('git-commit-build', () =>
     .pipe(git.add())
     .pipe(git.commit('Release build')));
 
-gulp.task('git-push-develop', (callback) =>
-  git.push('origin', 'develop', callback));
+gulp.task('git-push', (callback) =>
+  git.push(callback));
 
 gulp.task('release', callback => {
   runSequence(
     'build',
     'git-commit-build',
-    'git-push-develop',
+    'git-push',
     callback);
 });
