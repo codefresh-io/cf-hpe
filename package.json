@@ -1,6 +1,6 @@
 {
   "name": "cf-hpe",
-  "version": "1.0.8",
+  "version": "0.0.5",
   "private": true,
   "files": [
     "dist"
