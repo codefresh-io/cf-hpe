@@ -1,6 +1,6 @@
 {
   "name": "cf-hpe",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "private": true,
   "files": [
     "dist"
@@ -27,7 +27,6 @@
     "babel-plugin-transform-object-rest-spread": "^6.8.0",
     "babel-preset-es2015": "^6.6.0",
     "babel-register": "^6.7.2",
-    "cf-hpe-mocha-reporter": "file:///Users/liorshalev01/Codefresh/cf-hpe-mocha-reporter",
     "chai": "^3.5.0",
     "del": "^2.2.0",
     "eslint": "^2.9.0",
