@@ -33,7 +33,10 @@ export const BuildStep = Record({
 });
 
 BuildStep.stepsFromBuild = (build) => {
-  logger.info('Processing build log steps. build (%s) service (%s)', build.id, build.name);
+  logger.info(
+    'Start processing build log steps. build (%s) service (%s)',
+    build.id,
+    build.name);
   const buildRunningStepObservable = BuildStep.runningStep(build).share();
   const finishedStepObservable = BuildStep.finishedStep(build).share();
   const childStepsObservable = BuildStep.childSteps(build)

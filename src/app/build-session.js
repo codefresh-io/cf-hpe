@@ -13,7 +13,10 @@ export const BuildSession = Record({
 
 BuildSession.createForBuild = (build) =>
   Rx.Observable
-    .start(() => logger.info('Open build session. build (%s)', build.id))
+    .start(() => logger.info(
+      'Open build session. build (%s) service (%s)',
+      build.id,
+      build.name))
     .flatMap(HpeApiSession.create())
     .flatMap(hpeApiSession => BuildSession.openHpeCiServer(hpeApiSession, build)
       .flatMap(ciServer => BuildSession.openHpePipeline(hpeApiSession, build, ciServer)
@@ -28,21 +31,27 @@ BuildSession.createForBuild = (build) =>
           hpeApiBuildSession,
         }))));
 
-BuildSession.reportBuildPipelineStepStatus = (buildSession, buildStep) =>
-  HpeApiBuildSession.reportBuildPipelineStepStatus(
+BuildSession.reportBuildPipelineStepStatus = (buildSession, buildStep) => {
+  return HpeApiBuildSession.reportBuildPipelineStepStatus(
     buildSession.hpeApiBuildSession,
     buildStep.stepId,
     buildStep.startTime,
     buildStep.duration,
     buildStep.status,
     buildStep.result);
+};
 
+BuildSession.reportBuildPipelineTestResults = (buildSession, buildStep, testResult) => {
+  logger.info('Report build pipeline test result. build (%s) service (%s) test (%s)',
+    buildSession.build.id,
+    buildSession.build.name,
+    testResult[0].name);
 
-BuildSession.reportBuildPipelineTestResults = (buildSession, buildStep, testResult) =>
-  HpeApiBuildSession.reportBuildPipelineTestResults(
+  return HpeApiBuildSession.reportBuildPipelineTestResults(
     buildSession.hpeApiBuildSession,
     buildStep.stepId,
     testResult);
+};
 
 BuildSession.openHpeCiServer = (session, build) => {
   const id = build.account._id.toString();
@@ -55,7 +64,7 @@ BuildSession.openHpeCiServer = (session, build) => {
         return Rx.Observable.just(ciServer);
       }
 
-      logger.info('Create hpe ci server. build (%s)', build.id);
+      logger.info('Create hpe ci server. build (%s) name (%s)', build.id, name);
       return HpeApiSession.createCiServer(session, id, name);
     })
     .map(ciServer => ({
