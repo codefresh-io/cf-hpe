@@ -15,6 +15,7 @@ export const Build = Record({
   name: null,
   account: null,
   service: null,
+  build: null,
   startTime: null,
 });
 
@@ -29,12 +30,14 @@ Build.buildsFromFirebase = () =>
     .flatMap(snapshot => Rx.Observable.zip(
       Build.findAccount(snapshot),
       Build.findService(snapshot),
-      (account, service) => new Build({
+      Build.findBuild(snapshot),
+      (account, service, build) => new Build({
         ref: snapshot.ref(),
-        id: snapshot.key(),
-        name: service.name,
+        id: build._id.toString(),
+        name: build.commit,
         account,
         service,
+        build,
         startTime: Date.now(),
       })));
 
@@ -92,3 +95,17 @@ Build.findService = (buildLogSnapshot) =>
       return true;
     })
     .map(service => service.toObject());
+
+Build.findBuild = (buildLogSnapshot) =>
+  Rx.Observable
+    .fromPromise(() => Model.Build.findOne(
+      { progress_id: Model.toObjectId(buildLogSnapshot.key()) }))
+    .filter(build => {
+      if (!build) {
+        logger.warn('Build progress not found. build (%s)', buildLogSnapshot.key());
+        return false;
+      }
+
+      return true;
+    })
+    .map(build => build.toObject());
