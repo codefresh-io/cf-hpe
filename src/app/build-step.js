@@ -2,7 +2,7 @@
 import R from 'ramda';
 import Rx from 'rx';
 import { Record } from 'immutable';
-import { FirebaseRx } from 'firebase-rx';
+import { FirebaseRx } from 'lib/firebase-rx';
 import { Logger } from 'lib/logger';
 import { HpeConfig } from 'app/hpe-config';
 

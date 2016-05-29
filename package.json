@@ -12,7 +12,7 @@
     "12factor-config": "^1.1.0",
     "cf-hpe-api": "git+https://github.com/liorshalev01/cf-hpe-api.git#0.0.5",
     "firebase": "^2.4.2",
-    "firebase-rx": "git+https://github.com/liorshalev01/firebase-rx.git#1.0.5",
+    "firebase-token-generator": "^2.0.0",
     "immutable": "^3.8.1",
     "mongoose": "^4.4.16",
     "node-uuid": "^1.4.7",
