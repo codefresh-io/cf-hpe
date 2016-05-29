@@ -25,9 +25,9 @@ const reportBuildPipelineTestResults = (buildStepObservable, buildSession) => {
         step.startTime,
         step.duration,
         hpeTestResultMapping[step.result],
-        buildSession.build.name,
-        buildSession.build.name,
-        buildSession.build.name);
+        buildSession.build.serviceName,
+        buildSession.build.serviceName,
+        buildSession.build.serviceName);
 
       return BuildSession.reportBuildPipelineTestResults(buildSession, step, [testResult]);
     })

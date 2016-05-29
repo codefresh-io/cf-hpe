@@ -1,4 +1,5 @@
 /* eslint-disable new-cap */
+import R from 'ramda';
 import Rx from 'rx';
 import { Record } from 'immutable';
 import Firebase from 'firebase';
@@ -11,13 +12,18 @@ const logger = Logger.create('Build');
 
 export const Build = Record({
   ref: null,
-  id: null,
-  name: null,
-  account: null,
-  service: null,
-  build: null,
+  accountId: null,
+  accountName: null,
+  serviceId: null,
+  serviceName: null,
+  buildId: null,
+  buildName: null,
   startTime: null,
 });
+
+const buildNameFromCommit = (commit) =>
+  R.takeWhile(R.compose(R.not, R.equals('\n')), commit).join('');
+
 
 Build.buildsFromFirebase = () =>
   Build
@@ -26,18 +32,21 @@ Build.buildsFromFirebase = () =>
       .orderByChild('data/started')
       .startAt(Date.now() / 1000))
     .flatMap(FirebaseRx.onChildAdded)
-    .doOnNext(snapshot => logger.info('New build started. build (%s)', snapshot.key()))
+    .doOnNext(snapshot => logger.info(
+      'New build progress started. progress (%s)',
+      snapshot.key()))
     .flatMap(snapshot => Rx.Observable.zip(
       Build.findAccount(snapshot),
       Build.findService(snapshot),
       Build.findBuild(snapshot),
       (account, service, build) => new Build({
         ref: snapshot.ref(),
-        id: build._id.toString(),
-        name: build.commit,
-        account,
-        service,
-        build,
+        accountId: account._id.toString(),
+        accountName: account.name,
+        serviceId: service._id.toString(),
+        serviceName: service.name,
+        buildId: build._id.toString(),
+        buildName: buildNameFromCommit(build.commit),
         startTime: Date.now(),
       })));
 
@@ -78,7 +87,9 @@ Build.findService = (buildLogSnapshot) =>
       'serviceId'))
     .filter(progress => {
       if (!progress) {
-        logger.warn('Build progress not found. build (%s)', buildLogSnapshot.key());
+        logger.warn(
+          'Build progress not found. progress (%s)', 
+          buildLogSnapshot.key());
         return false;
       }
 
@@ -88,7 +99,9 @@ Build.findService = (buildLogSnapshot) =>
       { _id: Model.toObjectId(progress.get('serviceId')) }))
     .filter(service => {
       if (!service) {
-        logger.warn('Build service not found. build (%s)', buildLogSnapshot.key());
+        logger.warn(
+          'Build service not found. progress (%s)', 
+          buildLogSnapshot.key());
         return false;
       }
 
@@ -102,7 +115,9 @@ Build.findBuild = (buildLogSnapshot) =>
       { progress_id: Model.toObjectId(buildLogSnapshot.key()) }))
     .filter(build => {
       if (!build) {
-        logger.warn('Build progress not found. build (%s)', buildLogSnapshot.key());
+        logger.warn(
+          'Build progress not found. progress (%s)', 
+          buildLogSnapshot.key());
         return false;
       }
 

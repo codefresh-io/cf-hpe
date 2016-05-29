@@ -20,8 +20,8 @@ export const BuildStep = Record({
 BuildStep.stepsFromBuild = (build) => {
   logger.info(
     'Start processing build log steps. build (%s) service (%s)',
-    build.id,
-    build.name);
+    build.buildId,
+    build.serviceName);
 
   const buildRunningStepObservable = BuildStep.runningStep(build).share();
   const finishedStepObservable = BuildStep.finishedStep(build).share();
@@ -38,8 +38,8 @@ BuildStep.stepsFromBuild = (build) => {
     .catch(error => {
       logger.error(
         'Build failed. build (%s) service (%s) error (%s)',
-        build.id,
-        build.name,
+        build.buildId,
+        build.serviceName,
         error);
 
       return Rx.Observable.of(
@@ -51,16 +51,17 @@ BuildStep.stepsFromBuild = (build) => {
           result: 'failure',
         }));
     })
-    .doOnNext(buildStep =>
-      logger.info(
-        'Build step. build (%s) service (%s) step (%s) status (%s) result (%s)',
-        build.id,
-        build.name,
-        buildStep.stepId,
-        buildStep.status,
-        buildStep.result))
-    .doOnCompleted(() =>
-      logger.info('Build finished. build (%s) service (%s)', build.id, build.name));
+    .doOnNext(buildStep => logger.info(
+      'Build step. build (%s) service (%s) step (%s) status (%s) result (%s)',
+      build.buildId,
+      build.serviceName,
+      buildStep.stepId,
+      buildStep.status,
+      buildStep.result))
+    .doOnCompleted(() => logger.info(
+      'Build finished. build (%s) service (%s)',
+      build.buildId,
+      build.serviceName));
 };
 
 BuildStep.runningStep = (build) =>
