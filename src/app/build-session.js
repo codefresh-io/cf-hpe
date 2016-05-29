@@ -7,11 +7,11 @@ import { HpeConfig } from 'app/hpe-config';
 
 const logger = Logger.create('BuildSession');
 const hpeApiConfig = HpeApiConfig.create(
-  HpeConfig.hpeServerUrl,
-  HpeConfig.hpeUser,
-  HpeConfig.hpePassword,
-  HpeConfig.hpeSharedSpace,
-  HpeConfig.hpeWorkspace);
+  HpeConfig.CF_HPE_SERVER_URL,
+  HpeConfig.CF_HPE_USER,
+  HpeConfig.CF_HPE_PASSWORD,
+  HpeConfig.CF_HPE_SHARED_SPACE,
+  HpeConfig.CF_HPE_WORKSPACE);
 
 export const BuildSession = Record({
   build: null,

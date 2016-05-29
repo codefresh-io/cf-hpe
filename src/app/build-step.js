@@ -53,7 +53,7 @@ BuildStep.stepsFromBuild = (build) => {
       buildRunningStepObservable,
       childStepsObservable,
       finishedStepObservable)
-    .timeout(HpeConfig.buildTimeout * 1000)
+    .timeout(HpeConfig.CF_HPE_BUILD_TIMEOUT * 1000)
     .catch(error => {
       logger.error(
         'Build failed. build (%s) service (%s) error (%s)',

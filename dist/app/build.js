@@ -58,14 +58,14 @@ Build.buildsFromFirebase = function () {
 
 Build.openBuildLogsRef = function () {
   return _rx2.default.Observable.start(function () {
-    return new _firebase2.default(_hpeConfig.HpeConfig.firebaseBuildLogsUrl);
+    return new _firebase2.default(_hpeConfig.HpeConfig.CF_HPE_FIREBASE_BUILD_LOGS_URL);
   }).doOnNext(function (buildLogsRef) {
     return logger.info('Open build logs ref. url (%s)', buildLogsRef.toString());
-  }).flatMap(_firebaseRx.FirebaseRx.authWithSecretToken(_hpeConfig.HpeConfig.firebaseSecret, 'hpe-service', { admin: true }));
+  }).flatMap(_firebaseRx.FirebaseRx.authWithSecretToken(_hpeConfig.HpeConfig.CF_HPE_FIREBASE_SECRET, 'hpe-service', { admin: true }));
 };
 
 Build.isHpeIntegrationAccount = function (account) {
-  return true || account.integrations.hpe && account.integrations.hpe.active;
+  return account.name === _hpeConfig.HpeConfig.CF_HPE_INTEGRATION_ACCOUNT || account.integrations.hpe && account.integrations.hpe.active;
 };
 
 Build.findAccount = function (buildLogSnapshot) {

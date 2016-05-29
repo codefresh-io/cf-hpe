@@ -67,7 +67,7 @@ BuildStep.stepsFromBuild = function (build) {
   var finishedStepObservable = BuildStep.finishedStep(build).share();
   var childStepsObservable = BuildStep.childSteps(build).takeUntil(finishedStepObservable).share();
 
-  return _rx2.default.Observable.concat(buildRunningStepObservable, childStepsObservable, finishedStepObservable).timeout(_hpeConfig.HpeConfig.buildTimeout * 1000).catch(function (error) {
+  return _rx2.default.Observable.concat(buildRunningStepObservable, childStepsObservable, finishedStepObservable).timeout(_hpeConfig.HpeConfig.CF_HPE_BUILD_TIMEOUT * 1000).catch(function (error) {
     logger.error('Build failed. build (%s) service (%s) error (%s)', build.id, build.name, error);
 
     return _rx2.default.Observable.of(new BuildStep({

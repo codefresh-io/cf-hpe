@@ -13,7 +13,7 @@ var _mongoose2 = _interopRequireDefault(_mongoose);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-_mongoose2.default.connect(_hpeConfig.HpeConfig.mongodbUrl);
+_mongoose2.default.connect(_hpeConfig.HpeConfig.CF_HPE_MONGODB_URL);
 var toObjectId = _mongoose2.default.Types.ObjectId;
 var Account = _mongoose2.default.model('account', new _mongoose.Schema());
 var Service = _mongoose2.default.model('service', new _mongoose.Schema());

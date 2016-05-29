@@ -21,7 +21,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var logger = _logger.Logger.create('BuildSession'); /* eslint-disable new-cap */
 
-var hpeApiConfig = _cfHpeApi.HpeApiConfig.create(_hpeConfig.HpeConfig.hpeServerUrl, _hpeConfig.HpeConfig.hpeUser, _hpeConfig.HpeConfig.hpePassword, _hpeConfig.HpeConfig.hpeSharedSpace, _hpeConfig.HpeConfig.hpeWorkspace);
+var hpeApiConfig = _cfHpeApi.HpeApiConfig.create(_hpeConfig.HpeConfig.CF_HPE_SERVER_URL, _hpeConfig.HpeConfig.CF_HPE_USER, _hpeConfig.HpeConfig.CF_HPE_PASSWORD, _hpeConfig.HpeConfig.CF_HPE_SHARED_SPACE, _hpeConfig.HpeConfig.CF_HPE_WORKSPACE);
 
 var BuildSession = exports.BuildSession = (0, _immutable.Record)({
   build: null,
