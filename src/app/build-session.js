@@ -18,13 +18,12 @@ export const BuildSession = Record({
   hpeApiBuildSession: null,
 });
 
-
 BuildSession.createForBuild = (build) =>
   Rx.Observable
     .start(() => logger.info(
       'Open build session. build (%s) service (%s)',
-      build.id,
-      build.name))
+      build.buildId,
+      build.serviceName))
     .flatMap(HpeApiSession.create(hpeApiConfig))
     .flatMap(hpeApiSession => BuildSession.openHpeCiServer(hpeApiSession, build)
       .flatMap(ciServer => BuildSession.openHpePipeline(hpeApiSession, build, ciServer)
@@ -32,8 +31,8 @@ BuildSession.createForBuild = (build) =>
           hpeApiSession,
           ciServer.id,
           pipeline.id,
-          build.id,
-          build.name))
+          build.buildId,
+          build.buildName))
         .map(hpeApiBuildSession => new BuildSession({
           build,
           hpeApiBuildSession,
@@ -51,8 +50,8 @@ BuildSession.reportBuildPipelineStepStatus = (buildSession, buildStep) => {
 
 BuildSession.reportBuildPipelineTestResults = (buildSession, buildStep, testResult) => {
   logger.info('Report build pipeline test result. build (%s) service (%s) test (%s) result (%s)',
-    buildSession.build.id,
-    buildSession.build.name,
+    buildSession.build.buildId,
+    buildSession.build.serviceName,
     testResult[0].name,
     testResult[0].status);
 
@@ -63,8 +62,8 @@ BuildSession.reportBuildPipelineTestResults = (buildSession, buildStep, testResu
 };
 
 BuildSession.openHpeCiServer = (session, build) => {
-  const id = build.account._id.toString();
-  const name = build.account.name;
+  const id = build.accountId;
+  const name = build.accountName;
 
   return HpeApiSession
     .findCiServer(session, id)
@@ -73,7 +72,7 @@ BuildSession.openHpeCiServer = (session, build) => {
         return Rx.Observable.just(ciServer);
       }
 
-      logger.info('Create hpe ci server. build (%s) name (%s)', build.id, name);
+      logger.info('Create hpe ci server. build (%s) id(%s) name (%s)', build.buildId, id, name);
       return HpeApiSession.createCiServer(session, id, name);
     })
     .map(ciServer => ({
@@ -84,8 +83,8 @@ BuildSession.openHpeCiServer = (session, build) => {
 };
 
 BuildSession.openHpePipeline = (session, build, ciServer) => {
-  const id = build.service._id.toString();
-  const name = build.service.name;
+  const id = build.serviceId;
+  const name = build.serviceName;
   const ciServerHpeId = ciServer.hpeId;
 
   return HpeApiSession
