@@ -37,14 +37,14 @@ var BuildStep = exports.BuildStep = (0, _immutable.Record)({
 });
 
 BuildStep.stepsFromBuild = function (build) {
-  logger.info('Start processing build log steps. build (%s) service (%s)', build.id, build.name);
+  logger.info('Start processing build log steps. build (%s) service (%s)', build.buildId, build.serviceName);
 
   var buildRunningStepObservable = BuildStep.runningStep(build).share();
   var finishedStepObservable = BuildStep.finishedStep(build).share();
   var childStepsObservable = BuildStep.childSteps(build).takeUntil(finishedStepObservable).share();
 
   return _rx2.default.Observable.concat(buildRunningStepObservable, childStepsObservable, finishedStepObservable).timeout(_hpeConfig.HpeConfig.CF_HPE_BUILD_TIMEOUT * 1000).catch(function (error) {
-    logger.error('Build failed. build (%s) service (%s) error (%s)', build.id, build.name, error);
+    logger.error('Build failed. build (%s) service (%s) error (%s)', build.buildId, build.serviceName, error);
 
     return _rx2.default.Observable.of(new BuildStep({
       stepId: 'pipeline',
@@ -54,9 +54,9 @@ BuildStep.stepsFromBuild = function (build) {
       result: 'failure'
     }));
   }).doOnNext(function (buildStep) {
-    return logger.info('Build step. build (%s) service (%s) step (%s) status (%s) result (%s)', build.id, build.name, buildStep.stepId, buildStep.status, buildStep.result);
+    return logger.info('Build step. build (%s) service (%s) step (%s) status (%s) result (%s)', build.buildId, build.serviceName, buildStep.stepId, buildStep.status, buildStep.result);
   }).doOnCompleted(function () {
-    return logger.info('Build finished. build (%s) service (%s)', build.id, build.name);
+    return logger.info('Build finished. build (%s) service (%s)', build.buildId, build.serviceName);
   });
 };
 

@@ -26,7 +26,7 @@ var reportBuildPipelineTestResults = function reportBuildPipelineTestResults(bui
   buildStepObservable.filter(function (step) {
     return step.stepId === 'unit-test-script';
   }).flatMap(function (step) {
-    var testResult = _cfHpeApi.HpeApiTestResult.create(step.stepId, step.startTime, step.duration, hpeTestResultMapping[step.result], buildSession.build.name, buildSession.build.name, buildSession.build.name);
+    var testResult = _cfHpeApi.HpeApiTestResult.create(step.stepId, step.startTime, step.duration, hpeTestResultMapping[step.result], buildSession.build.serviceName, buildSession.build.serviceName, buildSession.build.serviceName);
 
     return _buildSession.BuildSession.reportBuildPipelineTestResults(buildSession, step, [testResult]);
   }).subscribe();
