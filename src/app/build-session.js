@@ -18,7 +18,6 @@ export const BuildSession = Record({
   hpeApiBuildSession: null,
 });
 
-
 BuildSession.createForBuild = (build) =>
   Rx.Observable
     .start(() => logger.info(

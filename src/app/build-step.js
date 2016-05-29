@@ -5,28 +5,9 @@ import { Record } from 'immutable';
 import { FirebaseRx, FirebaseSnapshotRx } from 'lib/firebase-rx';
 import { Logger } from 'lib/logger';
 import { HpeConfig } from 'app/hpe-config';
+import { HpeStatusMapping, HpePipelineStepMapping } from 'app/build-mapping';
 
 const logger = Logger.create('BuildStep');
-
-const hpeStatusMapping = {
-  success: 'success',
-  error: 'failure',
-  terminated: 'aborted',
-};
-
-hpeStatusMapping.isStatus = (status) => R.has(status, hpeStatusMapping);
-
-const hpePipelineStepMapping = {
-  'Initializing Process': 'clone-repository',
-  'Building Docker Image': 'build-dockerfile',
-  'Running Unit Tests': 'unit-test-script',
-  'Pushing to Docker Registry': 'push-docker-registry',
-  'Running Integration Tests': 'integration-test-script',
-  'security-validation': 'security-validation',
-  'Running Deploy script': 'deploy-script',
-};
-
-hpePipelineStepMapping.isPipelineStep = (name) => R.has(name, hpePipelineStepMapping);
 
 export const BuildStep = Record({
   stepId: null,
@@ -106,14 +87,14 @@ BuildStep.finishedStep = (build) =>
     .flatMap(FirebaseRx.of(build.ref))
     .flatMap(FirebaseRx.onValue)
     .map(FirebaseSnapshotRx.val)
-    .filter(R.compose(hpeStatusMapping.isStatus, R.prop('status')))
+    .filter(R.compose(HpeStatusMapping.isStatus, R.prop('status')))
     .take(1)
     .map(buildLog => new BuildStep({
       stepId: 'pipeline',
       startTime: build.startTime,
       duration: Date.now() - build.startTime,
       status: 'finished',
-      result: hpeStatusMapping[buildLog.status],
+      result: HpeStatusMapping[buildLog.status],
     }));
 
 BuildStep.childSteps = (build) => {
@@ -124,14 +105,14 @@ BuildStep.childSteps = (build) => {
   return Rx.Observable
     .merge(stepAddedObservable, stepChangedObservable)
     .map(FirebaseSnapshotRx.val)
-    .filter(R.compose(hpeStatusMapping.isStatus, R.prop('status')))
-    .filter(R.compose(hpePipelineStepMapping.isPipelineStep, R.prop('name')))
+    .filter(R.compose(HpeStatusMapping.isStatus, R.prop('status')))
+    .filter(R.compose(HpePipelineStepMapping.isPipelineStep, R.prop('name')))
     .distinct(R.prop('name'))
     .map(step => new BuildStep({
-      stepId: hpePipelineStepMapping[step.name],
+      stepId: HpePipelineStepMapping[step.name],
       startTime: step.creationTimeStamp * 1000,
       duration: (step.finishTimeStamp - step.creationTimeStamp) * 1000,
       status: 'finished',
-      result: hpeStatusMapping[step.status],
+      result: HpeStatusMapping[step.status],
     }));
 };
