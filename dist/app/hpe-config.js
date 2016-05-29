@@ -34,5 +34,35 @@ var HpeConfig = exports.HpeConfig = (0, _factorConfig2.default)({
     env: 'CF_HPE_BUILD_TIMEOUT',
     type: 'integer',
     default: 600
+  },
+
+  hpeServerUrl: {
+    env: 'CF_HPE_SERVER_URL',
+    type: 'string',
+    required: true
+  },
+
+  hpeUser: {
+    env: 'CF_HPE_USER',
+    type: 'string',
+    required: true
+  },
+
+  hpePassword: {
+    env: 'CF_HPE_PASSWORD',
+    type: 'string',
+    required: true
+  },
+
+  hpeSharedSpace: {
+    env: 'CF_HPE_SHARED_SPACE',
+    type: 'string',
+    required: true
+  },
+
+  hpeWorkspace: {
+    env: 'CF_HPE_WORKSPACE',
+    type: 'string',
+    required: true
   }
 });

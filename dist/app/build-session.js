@@ -15,12 +15,13 @@ var _cfHpeApi = require('cf-hpe-api');
 
 var _logger = require('../lib/logger');
 
+var _hpeConfig = require('./hpe-config');
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-/* eslint-disable new-cap */
+var logger = _logger.Logger.create('BuildSession'); /* eslint-disable new-cap */
 
-
-var logger = _logger.Logger.create('BuildSession');
+var hpeApiConfig = _cfHpeApi.HpeApiConfig.create(_hpeConfig.HpeConfig.hpeServerUrl, _hpeConfig.HpeConfig.hpeUser, _hpeConfig.HpeConfig.hpePassword, _hpeConfig.HpeConfig.hpeSharedSpace, _hpeConfig.HpeConfig.hpeWorkspace);
 
 var BuildSession = exports.BuildSession = (0, _immutable.Record)({
   build: null,
@@ -30,7 +31,7 @@ var BuildSession = exports.BuildSession = (0, _immutable.Record)({
 BuildSession.createForBuild = function (build) {
   return _rx2.default.Observable.start(function () {
     return logger.info('Open build session. build (%s) service (%s)', build.id, build.name);
-  }).flatMap(_cfHpeApi.HpeApiSession.create()).flatMap(function (hpeApiSession) {
+  }).flatMap(_cfHpeApi.HpeApiSession.create(hpeApiConfig)).flatMap(function (hpeApiSession) {
     return BuildSession.openHpeCiServer(hpeApiSession, build).flatMap(function (ciServer) {
       return BuildSession.openHpePipeline(hpeApiSession, build, ciServer).map(function (pipeline) {
         return _cfHpeApi.HpeApiBuildSession.create(hpeApiSession, ciServer.id, pipeline.id, build.id, build.name);
