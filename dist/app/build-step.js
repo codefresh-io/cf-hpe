@@ -15,7 +15,7 @@ var _rx2 = _interopRequireDefault(_rx);
 
 var _immutable = require('immutable');
 
-var _firebaseRx = require('firebase-rx');
+var _firebaseRx = require('../lib/firebase-rx');
 
 var _logger = require('../lib/logger');
 
@@ -34,6 +34,10 @@ var hpeStatusMapping = {
   terminated: 'aborted'
 };
 
+hpeStatusMapping.isStatus = function (status) {
+  return _ramda2.default.has(status, hpeStatusMapping);
+};
+
 var hpePipelineStepMapping = {
   'Initializing Process': 'clone-repository',
   'Building Docker Image': 'build-dockerfile',
@@ -42,6 +46,10 @@ var hpePipelineStepMapping = {
   'Running Integration Tests': 'integration-test-script',
   'security-validation': 'security-validation',
   'Running Deploy script': 'deploy-script'
+};
+
+hpePipelineStepMapping.isPipelineStep = function (name) {
+  return _ramda2.default.has(name, hpePipelineStepMapping);
 };
 
 var BuildStep = exports.BuildStep = (0, _immutable.Record)({
@@ -54,14 +62,15 @@ var BuildStep = exports.BuildStep = (0, _immutable.Record)({
 
 BuildStep.stepsFromBuild = function (build) {
   logger.info('Start processing build log steps. build (%s) service (%s)', build.id, build.name);
+
   var buildRunningStepObservable = BuildStep.runningStep(build).share();
   var finishedStepObservable = BuildStep.finishedStep(build).share();
   var childStepsObservable = BuildStep.childSteps(build).takeUntil(finishedStepObservable).share();
 
-  return _rx2.default.Observable.concat(buildRunningStepObservable, childStepsObservable, finishedStepObservable).timeout(_hpeConfig.HpeConfig.buildTimeout * 1000).catch(function (error) {
+  return _rx2.default.Observable.concat(buildRunningStepObservable, childStepsObservable, finishedStepObservable).timeout(_hpeConfig.HpeConfig.CF_HPE_BUILD_TIMEOUT * 1000).catch(function (error) {
     logger.error('Build failed. build (%s) service (%s) error (%s)', build.id, build.name, error);
 
-    return _rx2.default.Observable.just(new BuildStep({
+    return _rx2.default.Observable.of(new BuildStep({
       stepId: 'pipeline',
       startTime: build.startTime,
       duration: Date.now() - build.startTime,
@@ -69,16 +78,14 @@ BuildStep.stepsFromBuild = function (build) {
       result: 'failure'
     }));
   }).doOnNext(function (buildStep) {
-    logger.info('Build step. build (%s) service (%s) step (%s) status (%s) result (%s)', build.id, build.name, buildStep.stepId, buildStep.status, buildStep.result);
+    return logger.info('Build step. build (%s) service (%s) step (%s) status (%s) result (%s)', build.id, build.name, buildStep.stepId, buildStep.status, buildStep.result);
   }).doOnCompleted(function () {
-    logger.info('Build finished. build (%s) service (%s)', build.id, build.name);
+    return logger.info('Build finished. build (%s) service (%s)', build.id, build.name);
   });
 };
 
 BuildStep.runningStep = function (build) {
-  return _firebaseRx.FirebaseRx.onValue(build.ref.child('data/started')).filter(function (snapshot) {
-    return snapshot.exists();
-  }).take(1).map(function () {
+  return _firebaseRx.FirebaseRx.of(build.ref).map(_firebaseRx.FirebaseRx.child('data/started')).flatMap(_firebaseRx.FirebaseRx.onValue).filter(_firebaseRx.FirebaseSnapshotRx.exists).take(1).map(function () {
     return new BuildStep({
       stepId: 'pipeline',
       startTime: build.startTime,
@@ -90,15 +97,7 @@ BuildStep.runningStep = function (build) {
 };
 
 BuildStep.finishedStep = function (build) {
-  return _firebaseRx.FirebaseRx.onValue(build.ref.child('data/finished')).filter(function (snapshot) {
-    return snapshot.exists();
-  }).take(1).flatMap(function () {
-    return _firebaseRx.FirebaseRx.onValue(build.ref);
-  }).filter(function (snapshot) {
-    var buildLog = snapshot.val();
-    return _ramda2.default.has(buildLog.status, hpeStatusMapping);
-  }).take(1).map(function (snapshot) {
-    var buildLog = snapshot.val();
+  return _firebaseRx.FirebaseRx.of(build.ref).map(_firebaseRx.FirebaseRx.child('data/finished')).flatMap(_firebaseRx.FirebaseRx.onValue).filter(_firebaseRx.FirebaseSnapshotRx.exists).take(1).flatMap(_firebaseRx.FirebaseRx.of(build.ref)).flatMap(_firebaseRx.FirebaseRx.onValue).map(_firebaseRx.FirebaseSnapshotRx.val).filter(_ramda2.default.compose(hpeStatusMapping.isStatus, _ramda2.default.prop('status'))).take(1).map(function (buildLog) {
     return new BuildStep({
       stepId: 'pipeline',
       startTime: build.startTime,
@@ -114,13 +113,7 @@ BuildStep.childSteps = function (build) {
   var stepAddedObservable = _firebaseRx.FirebaseRx.onChildAdded(stepsRef);
   var stepChangedObservable = _firebaseRx.FirebaseRx.onChildChanged(stepsRef);
 
-  return _rx2.default.Observable.merge(stepAddedObservable, stepChangedObservable).filter(function (snapshot) {
-    var step = snapshot.val();
-    return _ramda2.default.has(step.name, hpePipelineStepMapping) && _ramda2.default.has(step.status, hpeStatusMapping);
-  }).distinct(function (snapshot) {
-    return snapshot.val().name;
-  }).map(function (snapshot) {
-    var step = snapshot.val();
+  return _rx2.default.Observable.merge(stepAddedObservable, stepChangedObservable).map(_firebaseRx.FirebaseSnapshotRx.val).filter(_ramda2.default.compose(hpeStatusMapping.isStatus, _ramda2.default.prop('status'))).filter(_ramda2.default.compose(hpePipelineStepMapping.isPipelineStep, _ramda2.default.prop('name'))).distinct(_ramda2.default.prop('name')).map(function (step) {
     return new BuildStep({
       stepId: hpePipelineStepMapping[step.name],
       startTime: step.creationTimeStamp * 1000,

@@ -2,7 +2,7 @@
 import Rx from 'rx';
 import { Record } from 'immutable';
 import Firebase from 'firebase';
-import { FirebaseRx } from 'firebase-rx';
+import { FirebaseRx } from 'lib/firebase-rx';
 import { Logger } from 'lib/logger';
 import { Model } from 'app/model';
 import { HpeConfig } from 'app/hpe-config';
@@ -21,41 +21,37 @@ export const Build = Record({
 Build.buildsFromFirebase = () =>
   Build
     .openBuildLogsRef()
-    .flatMap(buildLogsRef => {
-      const query = buildLogsRef
-        .orderByChild('data/started')
-        .startAt(Date.now() / 1000);
-      return FirebaseRx.onChildAdded(query);
-    })
-    .flatMap(snapshot => {
-      logger.info('New build started. build (%s)', snapshot.key());
-      return Rx.Observable.zip(
-        Build.findAccount(snapshot),
-        Build.findService(snapshot),
-        (account, service) => new Build({
-          ref: snapshot.ref(),
-          id: snapshot.key(),
-          name: service.name,
-          account,
-          service,
-          startTime: Date.now(),
-        }));
-    });
+    .map(buildLogsRef => buildLogsRef
+      .orderByChild('data/started')
+      .startAt(Date.now() / 1000))
+    .flatMap(FirebaseRx.onChildAdded)
+    .doOnNext(snapshot => logger.info('New build started. build (%s)', snapshot.key()))
+    .flatMap(snapshot => Rx.Observable.zip(
+      Build.findAccount(snapshot),
+      Build.findService(snapshot),
+      (account, service) => new Build({
+        ref: snapshot.ref(),
+        id: snapshot.key(),
+        name: service.name,
+        account,
+        service,
+        startTime: Date.now(),
+      })));
 
 Build.openBuildLogsRef = () =>
   Rx.Observable
-    .start(() => new Firebase(HpeConfig.firebaseBuildLogsUrl))
-    .flatMap(buildLogs => {
-      logger.info('Open build logs ref. url (%s)', buildLogs.toString());
-      return FirebaseRx.authWithSecretToken(
-        buildLogs,
-        HpeConfig.firebaseSecret,
-        'hpe-service',
-        { admin: true });
-    });
+    .start(() => new Firebase(HpeConfig.CF_HPE_FIREBASE_BUILD_LOGS_URL))
+    .doOnNext(buildLogsRef => logger.info(
+      'Open build logs ref. url (%s)',
+      buildLogsRef.toString()))
+    .flatMap(FirebaseRx.authWithSecretToken(
+      HpeConfig.CF_HPE_FIREBASE_SECRET,
+      'hpe-service',
+      { admin: true }));
 
 Build.isHpeIntegrationAccount = (account) =>
-  (true || account.integrations.hpe && account.integrations.hpe.active);
+  (account.name === HpeConfig.CF_HPE_INTEGRATION_ACCOUNT ||
+  account.integrations.hpe && account.integrations.hpe.active);
 
 Build.findAccount = (buildLogSnapshot) =>
   Rx.Observable
