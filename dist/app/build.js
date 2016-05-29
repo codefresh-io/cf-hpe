@@ -15,7 +15,7 @@ var _firebase = require('firebase');
 
 var _firebase2 = _interopRequireDefault(_firebase);
 
-var _firebaseRx = require('firebase-rx');
+var _firebaseRx = require('../lib/firebase-rx');
 
 var _logger = require('../lib/logger');
 
@@ -38,11 +38,11 @@ var Build = exports.Build = (0, _immutable.Record)({
 });
 
 Build.buildsFromFirebase = function () {
-  return Build.openBuildLogsRef().flatMap(function (buildLogsRef) {
-    var query = buildLogsRef.orderByChild('data/started').startAt(Date.now() / 1000);
-    return _firebaseRx.FirebaseRx.onChildAdded(query);
+  return Build.openBuildLogsRef().map(function (buildLogsRef) {
+    return buildLogsRef.orderByChild('data/started').startAt(Date.now() / 1000);
+  }).flatMap(_firebaseRx.FirebaseRx.onChildAdded).doOnNext(function (snapshot) {
+    return logger.info('New build started. build (%s)', snapshot.key());
   }).flatMap(function (snapshot) {
-    logger.info('New build started. build (%s)', snapshot.key());
     return _rx2.default.Observable.zip(Build.findAccount(snapshot), Build.findService(snapshot), function (account, service) {
       return new Build({
         ref: snapshot.ref(),
@@ -59,10 +59,9 @@ Build.buildsFromFirebase = function () {
 Build.openBuildLogsRef = function () {
   return _rx2.default.Observable.start(function () {
     return new _firebase2.default(_hpeConfig.HpeConfig.firebaseBuildLogsUrl);
-  }).flatMap(function (buildLogs) {
-    logger.info('Open build logs ref. url (%s)', buildLogs.toString());
-    return _firebaseRx.FirebaseRx.authWithSecretToken(buildLogs, _hpeConfig.HpeConfig.firebaseSecret, 'hpe-service', { admin: true });
-  });
+  }).doOnNext(function (buildLogsRef) {
+    return logger.info('Open build logs ref. url (%s)', buildLogsRef.toString());
+  }).flatMap(_firebaseRx.FirebaseRx.authWithSecretToken(_hpeConfig.HpeConfig.firebaseSecret, 'hpe-service', { admin: true }));
 };
 
 Build.isHpeIntegrationAccount = function (account) {

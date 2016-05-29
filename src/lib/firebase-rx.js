@@ -3,7 +3,9 @@ import Rx from 'rx';
 import FirebaseTokenGenerator from 'firebase-token-generator';
 
 export const FirebaseRx = {};
+export const FirebaseSnapshotRx = {};
 
+FirebaseRx.of = (ref) => Rx.Observable.of(ref);
 FirebaseRx.root = (ref) => ref.root();
 FirebaseRx.unauth = (ref) => ref.unauth();
 FirebaseRx.child = R.curry((path, ref) => ref.child(path));
@@ -12,8 +14,8 @@ FirebaseRx.set = R.curry((value, ref) => Rx.Observable.fromPromise(ref.set(value
 FirebaseRx.update = R.curry((value, ref) => Rx.Observable.fromPromise(ref.update(value)));
 FirebaseRx.remove = (ref) => Rx.Observable.fromPromise(ref.remove());
 
-FirebaseRx.val = (snapshot) => snapshot.val();
-FirebaseRx.exists = (snapshot) => snapshot.exists();
+FirebaseSnapshotRx.val = (snapshot) => snapshot.val();
+FirebaseSnapshotRx.exists = (snapshot) => snapshot.exists();
 
 FirebaseRx.authWithSecretToken = R.curry((secret, uid, options, ref) =>
   Rx.Observable
