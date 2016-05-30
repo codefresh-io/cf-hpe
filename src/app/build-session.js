@@ -6,6 +6,7 @@ import { Logger } from 'lib/logger';
 import { HpeConfig } from 'app/hpe-config';
 
 const logger = Logger.create('BuildSession');
+
 const hpeApiConfig = HpeApiConfig.create(
   HpeConfig.CF_HPE_SERVER_URL,
   HpeConfig.CF_HPE_USER,
