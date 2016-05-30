@@ -25,6 +25,10 @@ BuildSession.createForBuild = (build) =>
       'Open build session. build (%s) service (%s)',
       build.buildId,
       build.serviceName))
+    .doOnNext(() => logger.info(
+      'Open hpe session. host (%s) user (%s)',
+      ReporterConfig.CF_HPE_SERVER_URL,
+      ReporterConfig.CF_HPE_USER))
     .flatMap(HpeApiSession.create(hpeApiConfig))
     .flatMap(hpeApiSession => BuildSession.openHpeCiServer(hpeApiSession, build)
       .flatMap(ciServer => BuildSession.openHpePipeline(hpeApiSession, build, ciServer)
