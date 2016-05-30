@@ -24,7 +24,6 @@ export const Build = Record({
 const buildNameFromCommit = (commit) =>
   R.takeWhile(R.compose(R.not, R.equals('\n')), commit).join('');
 
-
 Build.buildsFromFirebase = () =>
   Build
     .openBuildLogsRef()
@@ -88,7 +87,7 @@ Build.findService = (buildLogSnapshot) =>
     .filter(progress => {
       if (!progress) {
         logger.warn(
-          'Build progress not found. progress (%s)', 
+          'Build progress not found. progress (%s)',
           buildLogSnapshot.key());
         return false;
       }
@@ -100,7 +99,7 @@ Build.findService = (buildLogSnapshot) =>
     .filter(service => {
       if (!service) {
         logger.warn(
-          'Build service not found. progress (%s)', 
+          'Build service not found. progress (%s)',
           buildLogSnapshot.key());
         return false;
       }
@@ -116,7 +115,7 @@ Build.findBuild = (buildLogSnapshot) =>
     .filter(build => {
       if (!build) {
         logger.warn(
-          'Build progress not found. progress (%s)', 
+          'Build progress not found. progress (%s)',
           buildLogSnapshot.key());
         return false;
       }

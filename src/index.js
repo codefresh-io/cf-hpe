@@ -1,4 +1,4 @@
-import './config.env';
+import R from 'ramda';
 import { Build } from 'app/build';
 import { BuildStep } from 'app/build-step';
 import { BuildSession } from 'app/build-session';
@@ -18,7 +18,7 @@ const reportBuildPipelineStepStatus = (buildStepObservable, buildSession) => {
 
 const reportBuildPipelineTestResults = (buildStepObservable, buildSession) => {
   buildStepObservable
-    .filter(step => step.stepId === 'unit-test-script')
+    .filter(step => R.contains(step.stepId, ['unit-test-script', 'integration-test-script']))
     .flatMap(step => {
       const testResult = HpeApiTestResult.create(
         step.stepId,
