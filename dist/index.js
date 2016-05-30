@@ -1,6 +1,8 @@
 'use strict';
 
-require('./config.env');
+var _ramda = require('ramda');
+
+var _ramda2 = _interopRequireDefault(_ramda);
 
 var _build = require('./app/build');
 
@@ -9,6 +11,8 @@ var _buildStep = require('./app/build-step');
 var _buildSession = require('./app/build-session');
 
 var _cfHpeApi = require('cf-hpe-api');
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var hpeTestResultMapping = {
   success: 'Passed',
@@ -24,7 +28,7 @@ var reportBuildPipelineStepStatus = function reportBuildPipelineStepStatus(build
 
 var reportBuildPipelineTestResults = function reportBuildPipelineTestResults(buildStepObservable, buildSession) {
   buildStepObservable.filter(function (step) {
-    return step.stepId === 'unit-test-script';
+    return _ramda2.default.contains(step.stepId, ['unit-test-script', 'integration-test-script']);
   }).flatMap(function (step) {
     var testResult = _cfHpeApi.HpeApiTestResult.create(step.stepId, step.startTime, step.duration, hpeTestResultMapping[step.result], buildSession.build.serviceName, buildSession.build.serviceName, buildSession.build.serviceName);
 
