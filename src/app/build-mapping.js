@@ -9,10 +9,8 @@ export const HpeStatusMapping = {
 HpeStatusMapping.isStatus = (status) => R.has(status, HpeStatusMapping);
 
 export const HpePipelineStepMapping = {
-  'Initializing Process': 'clone-repository',
   'Building Docker Image': 'build-dockerfile',
   'Running Unit Tests': 'unit-test-script',
-  'Pushing to Docker Registry': 'push-docker-registry',
   'Running Integration Tests': 'integration-test-script',
   'security-validation': 'security-validation',
   'Running Deploy script': 'deploy-script',

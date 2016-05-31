@@ -27,7 +27,9 @@ const reportBuildPipelineTestResults = (buildStepObservable, buildSession) => {
         hpeTestResultMapping[step.result],
         buildSession.build.serviceName,
         buildSession.build.serviceName,
-        buildSession.build.serviceName);
+        buildSession.build.serviceName,
+        'Test failed',
+        'Test script run failed.');
 
       return BuildSession.reportBuildPipelineTestResults(buildSession, step, [testResult]);
     })
