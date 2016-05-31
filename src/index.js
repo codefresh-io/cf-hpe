@@ -1,4 +1,5 @@
 import R from 'ramda';
+import { DemoTests } from './demo-tests';
 import { Build } from 'app/build';
 import { BuildStep } from 'app/build-step';
 import { BuildSession } from 'app/build-session';
@@ -27,9 +28,7 @@ const reportBuildPipelineTestResults = (buildStepObservable, buildSession) => {
         hpeTestResultMapping[step.result],
         buildSession.build.serviceName,
         buildSession.build.serviceName,
-        buildSession.build.serviceName,
-        'Test failed',
-        'Test script run failed.');
+        buildSession.build.serviceName);
 
       return BuildSession.reportBuildPipelineTestResults(buildSession, step, [testResult]);
     })
@@ -40,7 +39,7 @@ Build.buildsFromFirebase().flatMap(build =>
   BuildSession.createForBuild(build).map(buildSession => {
     const buildStepObservable = BuildStep.stepsFromBuild(build).share();
     reportBuildPipelineStepStatus(buildStepObservable, buildSession);
-    reportBuildPipelineTestResults(buildStepObservable, buildSession);
+    DemoTests.reportBuildPipelineTestResults(buildStepObservable, buildSession);
     return null;
   }))
   .subscribe();
