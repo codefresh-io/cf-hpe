@@ -13,15 +13,15 @@ export const DemoTests = {};
 
 DemoTests.testResults = [
   {
-    name: 'Should pass test 1',
+    name: 'Should fail when not passing any object',
     status: 'Passed',
   },
   {
-    name: 'Should pass test 2',
+    name: 'Should fail when not passing id',
     status: 'Failed',
-    errorType: 'exception',
-    errorMessage: 'test failed',
-    errorStackTrace: 'test failed callstack',
+    errorType: 'AssertionError',
+    errorMessage: 'expected Error: add or update node failed failed because node.id param is missing to equal Errorr: add or update node failed failed because node.id param is missing',
+    errorStackTrace: 'events.js:154\n   throw er; // Unhandled error event',
   },
 ];
 
