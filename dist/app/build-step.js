@@ -29,6 +29,7 @@ var logger = _logger.Logger.create('BuildStep'); /* eslint-disable new-cap */
 
 
 var BuildStep = exports.BuildStep = (0, _immutable.Record)({
+  ref: null,
   stepId: null,
   startTime: null,
   duration: null,
@@ -89,8 +90,10 @@ BuildStep.childSteps = function (build) {
   var stepAddedObservable = _firebaseRx.FirebaseRx.onChildAdded(stepsRef);
   var stepChangedObservable = _firebaseRx.FirebaseRx.onChildChanged(stepsRef);
 
-  return _rx2.default.Observable.merge(stepAddedObservable, stepChangedObservable).map(_firebaseRx.FirebaseSnapshotRx.val).filter(_ramda2.default.compose(_buildMapping.HpeStatusMapping.isStatus, _ramda2.default.prop('status'))).filter(_ramda2.default.compose(_buildMapping.HpePipelineStepMapping.isPipelineStep, _ramda2.default.prop('name'))).distinct(_ramda2.default.prop('name')).map(function (step) {
+  return _rx2.default.Observable.merge(stepAddedObservable, stepChangedObservable).filter(_ramda2.default.compose(_buildMapping.HpeStatusMapping.isStatus, _firebaseRx.FirebaseSnapshotRx.prop('status'))).filter(_ramda2.default.compose(_buildMapping.HpePipelineStepMapping.isPipelineStep, _firebaseRx.FirebaseSnapshotRx.prop('name'))).distinct(_firebaseRx.FirebaseSnapshotRx.prop('name')).map(function (snapshot) {
+    var step = _firebaseRx.FirebaseSnapshotRx.val(snapshot);
     return new BuildStep({
+      ref: snapshot.ref(),
       stepId: _buildMapping.HpePipelineStepMapping[step.name],
       startTime: step.creationTimeStamp * 1000,
       duration: (step.finishTimeStamp - step.creationTimeStamp) * 1000,
@@ -98,4 +101,10 @@ BuildStep.childSteps = function (build) {
       result: _buildMapping.HpeStatusMapping[step.status]
     });
   });
+};
+
+BuildStep.childStepLogs = function (buildStep) {
+  var stepsLogsRef = buildStep.ref.child('logs');
+  var stepLogsAddedObservable = _firebaseRx.FirebaseRx.onChildAdded(stepsLogsRef);
+  return stepLogsAddedObservable.map(_firebaseRx.FirebaseSnapshotRx.val);
 };

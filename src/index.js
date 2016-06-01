@@ -1,4 +1,5 @@
 import R from 'ramda';
+import Rx from 'rx';
 import { Build } from 'app/build';
 import { BuildStep } from 'app/build-step';
 import { BuildSession } from 'app/build-session';
@@ -8,9 +9,8 @@ import { Logger } from 'lib/logger';
 const logger = Logger.create('CfHpe');
 
 const hpeTestResultMapping = {
-  success: 'Passed',
-  failure: 'Failed',
-  terminated: 'Failed',
+  pass: 'Passed',
+  fail: 'Failed',
 };
 
 const reportBuildPipelineSteps = (buildStepObservable, buildSession) =>
@@ -21,30 +21,27 @@ const reportBuildPipelineSteps = (buildStepObservable, buildSession) =>
 const reportBuildPipelineTests = (buildStepObservable, buildSession) =>
   buildStepObservable
     .filter(step => R.contains(step.stepId, ['unit-test-script']))
-    .flatMap(step => BuildStep.childStepLogs(step))
-    .doOnNext(line => logger.info(line));
-
-const reportBuildPipelineTests2 = (buildStepObservable, buildSession) => {
-  buildStepObservable
-    .filter(step => R.contains(step.stepId, ['unit-test-script', 'integration-test-script']))
-    .flatMap(step => {
-      const testResult = HpeApiTestResult.create(
-        step.stepId,
+    .flatMap(step => BuildStep
+      .childStepLogs(step)
+      .filter(R.test(/^\["(pass|fail)",{"title":.+}]\s+$/))
+      .map(JSON.parse)
+      .map(testResult => HpeApiTestResult.create(
+        testResult[1].fullTitle,
         step.startTime,
-        step.duration,
-        hpeTestResultMapping[step.result],
+        testResult[1].duration,
+        hpeTestResultMapping[testResult[0]],
         buildSession.build.serviceName,
         buildSession.build.serviceName,
-        buildSession.build.serviceName);
-
-      return BuildSession.reportBuildPipelineTestResults(buildSession, step, [testResult]);
-    });
-};
+        buildSession.build.serviceName))
+      .flatMap(hpeApiTestResult => BuildSession.reportBuildPipelineTestResults(
+        buildSession,
+        step,
+        [hpeApiTestResult])));
 
 Build.buildsFromFirebase().flatMap(build =>
   BuildSession.createForBuild(build).map(buildSession => {
     const buildStepObservable = BuildStep.stepsFromBuild(build).share();
     reportBuildPipelineSteps(buildStepObservable, buildSession).subscribe();
-    reportBuildPipelineTests(buildStepObservable, buildSession).subscribe();
+//    reportBuildPipelineTests(buildStepObservable, buildSession).subscribe();
     return {};
   })).subscribe();
