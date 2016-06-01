@@ -22,10 +22,8 @@ HpeStatusMapping.isStatus = function (status) {
 };
 
 var HpePipelineStepMapping = exports.HpePipelineStepMapping = {
-  'Initializing Process': 'clone-repository',
   'Building Docker Image': 'build-dockerfile',
   'Running Unit Tests': 'unit-test-script',
-  'Pushing to Docker Registry': 'push-docker-registry',
   'Running Integration Tests': 'integration-test-script',
   'security-validation': 'security-validation',
   'Running Deploy script': 'deploy-script'

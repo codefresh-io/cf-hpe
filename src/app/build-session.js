@@ -6,6 +6,7 @@ import { Logger } from 'lib/logger';
 import { HpeConfig } from 'app/hpe-config';
 
 const logger = Logger.create('BuildSession');
+
 const hpeApiConfig = HpeApiConfig.create(
   HpeConfig.CF_HPE_SERVER_URL,
   HpeConfig.CF_HPE_USER,
@@ -24,6 +25,10 @@ BuildSession.createForBuild = (build) =>
       'Open build session. build (%s) service (%s)',
       build.buildId,
       build.serviceName))
+    .doOnNext(() => logger.info(
+      'Open hpe session. host (%s) user (%s)',
+      HpeConfig.CF_HPE_SERVER_URL,
+      HpeConfig.CF_HPE_USER))
     .flatMap(HpeApiSession.create(hpeApiConfig))
     .flatMap(hpeApiSession => BuildSession.openHpeCiServer(hpeApiSession, build)
       .flatMap(ciServer => BuildSession.openHpePipeline(hpeApiSession, build, ciServer)

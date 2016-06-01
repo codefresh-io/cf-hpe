@@ -53,6 +53,9 @@ FirebaseSnapshotRx.val = function (snapshot) {
 FirebaseSnapshotRx.exists = function (snapshot) {
   return snapshot.exists();
 };
+FirebaseSnapshotRx.prop = _ramda2.default.curry(function (name, ref) {
+  return _ramda2.default.prop(name, ref.val());
+});
 
 FirebaseRx.authWithSecretToken = _ramda2.default.curry(function (secret, uid, options, ref) {
   return _rx2.default.Observable.just(new _firebaseTokenGenerator2.default(secret)).map(function (tokenGenerator) {

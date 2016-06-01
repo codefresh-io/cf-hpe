@@ -10,6 +10,7 @@ import { HpeStatusMapping, HpePipelineStepMapping } from 'app/build-mapping';
 const logger = Logger.create('BuildStep');
 
 export const BuildStep = Record({
+  ref: null,
   stepId: null,
   startTime: null,
   duration: null,
@@ -105,15 +106,24 @@ BuildStep.childSteps = (build) => {
 
   return Rx.Observable
     .merge(stepAddedObservable, stepChangedObservable)
-    .map(FirebaseSnapshotRx.val)
-    .filter(R.compose(HpeStatusMapping.isStatus, R.prop('status')))
-    .filter(R.compose(HpePipelineStepMapping.isPipelineStep, R.prop('name')))
-    .distinct(R.prop('name'))
-    .map(step => new BuildStep({
-      stepId: HpePipelineStepMapping[step.name],
-      startTime: step.creationTimeStamp * 1000,
-      duration: (step.finishTimeStamp - step.creationTimeStamp) * 1000,
-      status: 'finished',
-      result: HpeStatusMapping[step.status],
-    }));
+    .filter(R.compose(HpeStatusMapping.isStatus, FirebaseSnapshotRx.prop('status')))
+    .filter(R.compose(HpePipelineStepMapping.isPipelineStep, FirebaseSnapshotRx.prop('name')))
+    .distinct(FirebaseSnapshotRx.prop('name'))
+    .map(snapshot => {
+      const step = FirebaseSnapshotRx.val(snapshot);
+      return new BuildStep({
+        ref: snapshot.ref(),
+        stepId: HpePipelineStepMapping[step.name],
+        startTime: step.creationTimeStamp * 1000,
+        duration: (step.finishTimeStamp - step.creationTimeStamp) * 1000,
+        status: 'finished',
+        result: HpeStatusMapping[step.status],
+      });
+    });
+};
+
+BuildStep.childStepLogs = (buildStep) => {
+  const stepsLogsRef = buildStep.ref.child('logs');
+  const stepLogsAddedObservable = FirebaseRx.onChildAdded(stepsLogsRef);
+  return stepLogsAddedObservable.map(FirebaseSnapshotRx.val);
 };
