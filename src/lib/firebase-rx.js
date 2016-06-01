@@ -16,6 +16,7 @@ FirebaseRx.remove = (ref) => Rx.Observable.fromPromise(ref.remove());
 
 FirebaseSnapshotRx.val = (snapshot) => snapshot.val();
 FirebaseSnapshotRx.exists = (snapshot) => snapshot.exists();
+FirebaseSnapshotRx.prop = R.curry((name, ref) => R.prop(name, ref.val()));
 
 FirebaseRx.authWithSecretToken = R.curry((secret, uid, options, ref) =>
   Rx.Observable

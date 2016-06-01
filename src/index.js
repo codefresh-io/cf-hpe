@@ -1,9 +1,11 @@
 import R from 'ramda';
-import { DemoTests } from './demo-tests';
 import { Build } from 'app/build';
 import { BuildStep } from 'app/build-step';
 import { BuildSession } from 'app/build-session';
 import { HpeApiTestResult } from 'cf-hpe-api';
+import { Logger } from 'lib/logger';
+
+const logger = Logger.create('CfHpe');
 
 const hpeTestResultMapping = {
   success: 'Passed',
@@ -11,13 +13,18 @@ const hpeTestResultMapping = {
   terminated: 'Failed',
 };
 
-const reportBuildPipelineStepStatus = (buildStepObservable, buildSession) => {
-  buildStepObservable
-    .flatMap(step => BuildSession.reportBuildPipelineStepStatus(buildSession, step))
-    .subscribe();
-};
+const reportBuildPipelineSteps = (buildStepObservable, buildSession) =>
+  buildStepObservable.flatMap(step => BuildSession.reportBuildPipelineStepStatus(
+    buildSession,
+    step));
 
-const reportBuildPipelineTestResults = (buildStepObservable, buildSession) => {
+const reportBuildPipelineTests = (buildStepObservable, buildSession) =>
+  buildStepObservable
+    .filter(step => R.contains(step.stepId, ['unit-test-script']))
+    .flatMap(step => BuildStep.childStepLogs(step))
+    .doOnNext(line => logger.info(line));
+
+const reportBuildPipelineTests2 = (buildStepObservable, buildSession) => {
   buildStepObservable
     .filter(step => R.contains(step.stepId, ['unit-test-script', 'integration-test-script']))
     .flatMap(step => {
@@ -31,15 +38,13 @@ const reportBuildPipelineTestResults = (buildStepObservable, buildSession) => {
         buildSession.build.serviceName);
 
       return BuildSession.reportBuildPipelineTestResults(buildSession, step, [testResult]);
-    })
-    .subscribe();
+    });
 };
 
 Build.buildsFromFirebase().flatMap(build =>
   BuildSession.createForBuild(build).map(buildSession => {
     const buildStepObservable = BuildStep.stepsFromBuild(build).share();
-    reportBuildPipelineStepStatus(buildStepObservable, buildSession);
-    DemoTests.reportBuildPipelineTestResults(buildStepObservable, buildSession);
-    return null;
-  }))
-  .subscribe();
+    reportBuildPipelineSteps(buildStepObservable, buildSession).subscribe();
+    reportBuildPipelineTests(buildStepObservable, buildSession).subscribe();
+    return {};
+  })).subscribe();
