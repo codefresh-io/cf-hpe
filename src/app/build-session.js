@@ -44,6 +44,12 @@ BuildSession.createForBuild = (build) =>
         }))));
 
 BuildSession.reportBuildPipelineStepStatus = (buildSession, buildStep) => {
+  logger.info('Report build pipeline step result. build (%s) service (%s) step (%s) status (%s)',
+    buildSession.build.buildId,
+    buildSession.build.serviceName,
+    buildStep.stepId,
+    buildStep.status);
+
   return HpeApiBuildSession.reportBuildPipelineStepStatus(
     buildSession.hpeApiBuildSession,
     buildStep.stepId,

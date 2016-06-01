@@ -1,12 +1,8 @@
 import R from 'ramda';
-import Rx from 'rx';
 import { Build } from 'app/build';
 import { BuildStep } from 'app/build-step';
 import { BuildSession } from 'app/build-session';
 import { HpeApiTestResult } from 'cf-hpe-api';
-import { Logger } from 'lib/logger';
-
-const logger = Logger.create('CfHpe');
 
 const hpeTestResultMapping = {
   pass: 'Passed',
@@ -30,9 +26,9 @@ const reportBuildPipelineTests = (buildStepObservable, buildSession) =>
         step.startTime,
         testResult[1].duration,
         hpeTestResultMapping[testResult[0]],
-        buildSession.build.serviceName,
-        buildSession.build.serviceName,
-        buildSession.build.serviceName))
+        testResult[1].err,
+        testResult[1].err,
+        testResult[1].stack))
       .flatMap(hpeApiTestResult => BuildSession.reportBuildPipelineTestResults(
         buildSession,
         step,
@@ -42,6 +38,6 @@ Build.buildsFromFirebase().flatMap(build =>
   BuildSession.createForBuild(build).map(buildSession => {
     const buildStepObservable = BuildStep.stepsFromBuild(build).share();
     reportBuildPipelineSteps(buildStepObservable, buildSession).subscribe();
-//    reportBuildPipelineTests(buildStepObservable, buildSession).subscribe();
+    reportBuildPipelineTests(buildStepObservable, buildSession).subscribe();
     return {};
   })).subscribe();
