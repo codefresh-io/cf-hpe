@@ -46,12 +46,12 @@ BuildSession.createForBuild = (build) =>
 BuildSession.reportBuildPipelineStepStatus = (buildSession, buildStep) =>
   Rx.Observable.just({})
     .doOnNext(() => logger.info(
-      'Report build pipeline step result. build (%s) service (%s) step (%s) status (%s)',
+      'Step result. build (%s) service (%s) step (%s) status (%s) result (%s)',
       buildSession.build.buildId,
       buildSession.build.serviceName,
       buildStep.stepId,
-      buildStep.status))
-    .doOnNext(() => logger.info(buildStep.toString()))
+      buildStep.status,
+      buildStep.result))
     .flatMap(() => HpeApiBuildSession.reportBuildPipelineStepStatus(
       buildSession.hpeApiBuildSession,
       buildStep.stepId,
@@ -63,7 +63,7 @@ BuildSession.reportBuildPipelineStepStatus = (buildSession, buildStep) =>
 BuildSession.reportBuildPipelineTestResults = (buildSession, buildStep, testResult) =>
   Rx.Observable.just({})
     .doOnNext(() => logger.info(
-      'Report build pipeline test result. build (%s) service (%s) test (%s) result (%s)',
+      'Test result. build (%s) service (%s) test (%s) result (%s)',
       buildSession.build.buildId,
       buildSession.build.serviceName,
       testResult[0].name,
@@ -84,7 +84,7 @@ BuildSession.openHpeCiServer = (session, build) => {
         return Rx.Observable.just(ciServer);
       }
 
-      logger.info('Create hpe ci server. build (%s) id(%s) name (%s)', build.buildId, id, name);
+      logger.info('Create hpe ci server. build (%s) id (%s) name (%s)', build.buildId, id, name);
       return HpeApiSession.createCiServer(session, id, name);
     })
     .map(ciServer => ({

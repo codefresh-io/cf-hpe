@@ -19,22 +19,21 @@ export const BuildStep = Record({
 });
 
 BuildStep.stepsFromBuild = (build) => {
-  logger.info(
-    'Start processing build log steps. build (%s) service (%s)',
-    build.buildId,
-    build.serviceName);
-
   const buildRunningStepObservable = BuildStep.runningStep(build).share();
   const finishedStepObservable = BuildStep.finishedStep(build).share();
   const childStepsObservable = BuildStep.childSteps(build)
     .takeUntil(finishedStepObservable)
     .share();
 
-  return Rx.Observable
-    .concat(
+  return Rx.Observable.just({})
+    .doOnNext(() => logger.info(
+      'Start processing build log steps. build (%s) service (%s)',
+      build.buildId,
+      build.serviceName))
+    .flatMap(Rx.Observable.concat(
       buildRunningStepObservable,
       childStepsObservable,
-      finishedStepObservable)
+      finishedStepObservable))
     .timeout(HpeConfig.CF_HPE_BUILD_TIMEOUT * 1000)
     .catch(error => {
       logger.error(
