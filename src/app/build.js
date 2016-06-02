@@ -51,7 +51,7 @@ Build.buildsFromFirebase = () =>
 
 Build.openBuildLogsRef = () =>
   Rx.Observable
-    .start(() => new Firebase(HpeConfig.CF_HPE_FIREBASE_BUILD_LOGS_URL))
+    .just(new Firebase(HpeConfig.CF_HPE_FIREBASE_BUILD_LOGS_URL))
     .doOnNext(buildLogsRef => logger.info(
       'Open build logs ref. url (%s)',
       buildLogsRef.toString()))
@@ -61,6 +61,7 @@ Build.openBuildLogsRef = () =>
       { admin: true }));
 
 Build.isHpeIntegrationAccount = (account) =>
+  true ||
   (account.name === HpeConfig.CF_HPE_INTEGRATION_ACCOUNT ||
   account.integrations.hpe && account.integrations.hpe.active);
 
