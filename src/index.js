@@ -59,6 +59,5 @@ Build.buildsFromFirebase().flatMap(build =>
     const buildStepObservable = BuildStep.stepsFromBuild(build).share();
     reportBuildPipelineSteps(buildStepObservable, buildSession).subscribe();
     reportBuildPipelineTests(buildStepObservable, buildSession).subscribe();
-    reportBuildPipelineSecurityTests(buildStepObservable, buildSession).subscribe();
     return {};
   })).subscribe();
