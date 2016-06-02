@@ -19,7 +19,7 @@ export const BuildStep = Record({
 });
 
 BuildStep.stepsFromBuild = (build) => {
-  const buildRunningStepObservable = BuildStep.runningStep(build).share();
+  const runningStepObservable = BuildStep.runningStep(build).share();
   const finishedStepObservable = BuildStep.finishedStep(build).share();
   const childStepsObservable = BuildStep.childSteps(build)
     .takeUntil(finishedStepObservable)
@@ -31,7 +31,7 @@ BuildStep.stepsFromBuild = (build) => {
       build.buildId,
       build.serviceName))
     .flatMap(Rx.Observable.concat(
-      buildRunningStepObservable,
+      runningStepObservable,
       childStepsObservable,
       finishedStepObservable))
     .timeout(HpeConfig.CF_HPE_BUILD_TIMEOUT * 1000)
