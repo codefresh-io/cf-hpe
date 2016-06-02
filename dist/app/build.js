@@ -71,9 +71,7 @@ Build.buildsFromFirebase = function () {
 };
 
 Build.openBuildLogsRef = function () {
-  return _rx2.default.Observable.start(function () {
-    return new _firebase2.default(_hpeConfig.HpeConfig.CF_HPE_FIREBASE_BUILD_LOGS_URL);
-  }).doOnNext(function (buildLogsRef) {
+  return _rx2.default.Observable.just(new _firebase2.default(_hpeConfig.HpeConfig.CF_HPE_FIREBASE_BUILD_LOGS_URL)).doOnNext(function (buildLogsRef) {
     return logger.info('Open build logs ref. url (%s)', buildLogsRef.toString());
   }).flatMap(_firebaseRx.FirebaseRx.authWithSecretToken(_hpeConfig.HpeConfig.CF_HPE_FIREBASE_SECRET, 'hpe-service', { admin: true }));
 };
