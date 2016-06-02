@@ -20,8 +20,8 @@ export const BuildSession = Record({
 });
 
 BuildSession.createForBuild = (build) =>
-  Rx.Observable
-    .start(() => logger.info(
+  Rx.Observable.just({})
+    .doOnNext(() => logger.info(
       'Open build session. build (%s) service (%s)',
       build.buildId,
       build.serviceName))
@@ -43,34 +43,35 @@ BuildSession.createForBuild = (build) =>
           hpeApiBuildSession,
         }))));
 
-BuildSession.reportBuildPipelineStepStatus = (buildSession, buildStep) => {
-  logger.info('Report build pipeline step result. build (%s) service (%s) step (%s) status (%s)',
-    buildSession.build.buildId,
-    buildSession.build.serviceName,
-    buildStep.stepId,
-    buildStep.status);
+BuildSession.reportBuildPipelineStepStatus = (buildSession, buildStep) =>
+  Rx.Observable.just({})
+    .doOnNext(() => logger.info(
+      'Report build pipeline step result. build (%s) service (%s) step (%s) status (%s)',
+      buildSession.build.buildId,
+      buildSession.build.serviceName,
+      buildStep.stepId,
+      buildStep.status))
+    .doOnNext(() => logger.info(buildStep.toString()))
+    .flatMap(() => HpeApiBuildSession.reportBuildPipelineStepStatus(
+      buildSession.hpeApiBuildSession,
+      buildStep.stepId,
+      buildStep.startTime,
+      buildStep.duration,
+      buildStep.status,
+      buildStep.result));
 
-  return HpeApiBuildSession.reportBuildPipelineStepStatus(
-    buildSession.hpeApiBuildSession,
-    buildStep.stepId,
-    buildStep.startTime,
-    buildStep.duration,
-    buildStep.status,
-    buildStep.result);
-};
-
-BuildSession.reportBuildPipelineTestResults = (buildSession, buildStep, testResult) => {
-  logger.info('Report build pipeline test result. build (%s) service (%s) test (%s) result (%s)',
-    buildSession.build.buildId,
-    buildSession.build.serviceName,
-    testResult[0].name,
-    testResult[0].status);
-
-  return HpeApiBuildSession.reportBuildPipelineTestResults(
-    buildSession.hpeApiBuildSession,
-    buildStep.stepId,
-    testResult);
-};
+BuildSession.reportBuildPipelineTestResults = (buildSession, buildStep, testResult) =>
+  Rx.Observable.just({})
+    .doOnNext(() => logger.info(
+      'Report build pipeline test result. build (%s) service (%s) test (%s) result (%s)',
+      buildSession.build.buildId,
+      buildSession.build.serviceName,
+      testResult[0].name,
+      testResult[0].status))
+    .flatMap(() => HpeApiBuildSession.reportBuildPipelineTestResults(
+      buildSession.hpeApiBuildSession,
+      buildStep.stepId,
+      testResult));
 
 BuildSession.openHpeCiServer = (session, build) => {
   const id = build.accountId;
@@ -105,7 +106,7 @@ BuildSession.openHpePipeline = (session, build, ciServer) => {
         return Rx.Observable.throw(error);
       }
 
-      return Rx.Observable.just();
+      return Rx.Observable.just({});
     })
     .map(() => ({
       id,

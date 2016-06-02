@@ -43,7 +43,7 @@ BuildStep.stepsFromBuild = (build) => {
         build.serviceName,
         error);
 
-      return Rx.Observable.of(
+      return Rx.Observable.just(
         new BuildStep({
           stepId: 'pipeline',
           startTime: build.startTime,

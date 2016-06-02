@@ -5,7 +5,7 @@ import FirebaseTokenGenerator from 'firebase-token-generator';
 export const FirebaseRx = {};
 export const FirebaseSnapshotRx = {};
 
-FirebaseRx.of = (ref) => Rx.Observable.of(ref);
+FirebaseRx.of = (ref) => Rx.Observable.just(ref);
 FirebaseRx.root = (ref) => ref.root();
 FirebaseRx.unauth = (ref) => ref.unauth();
 FirebaseRx.child = R.curry((path, ref) => ref.child(path));
