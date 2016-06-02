@@ -16,7 +16,7 @@ const reportBuildPipelineSteps = (buildStepObservable, buildSession) =>
 
 const reportBuildPipelineTests = (buildStepObservable, buildSession) =>
   buildStepObservable
-    .filter(step => R.contains(step.stepId, ['unit-test-script']))
+    .filter(step => R.contains(step.stepId, ['unit-test-script', 'integration-test-script']))
     .flatMap(step => BuildStep
       .childStepLogs(step)
       .filter(R.test(/^\["(pass|fail)",{"title":.+}]\s+$/))
