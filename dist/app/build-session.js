@@ -30,7 +30,7 @@ var BuildSession = exports.BuildSession = (0, _immutable.Record)({
 });
 
 BuildSession.createForBuild = function (build) {
-  return _rx2.default.Observable.start(function () {
+  return _rx2.default.Observable.just({}).doOnNext(function () {
     return logger.info('Open build session. build (%s) service (%s)', build.buildId, build.serviceName);
   }).doOnNext(function () {
     return logger.info('Open hpe session. host (%s) user (%s)', _hpeConfig.HpeConfig.CF_HPE_SERVER_URL, _hpeConfig.HpeConfig.CF_HPE_USER);
@@ -49,13 +49,19 @@ BuildSession.createForBuild = function (build) {
 };
 
 BuildSession.reportBuildPipelineStepStatus = function (buildSession, buildStep) {
-  return _cfHpeApi.HpeApiBuildSession.reportBuildPipelineStepStatus(buildSession.hpeApiBuildSession, buildStep.stepId, buildStep.startTime, buildStep.duration, buildStep.status, buildStep.result);
+  return _rx2.default.Observable.just({}).doOnNext(function () {
+    return logger.info('Step result. build (%s) service (%s) step (%s) status (%s) result (%s)', buildSession.build.buildId, buildSession.build.serviceName, buildStep.stepId, buildStep.status, buildStep.result);
+  }).flatMap(function () {
+    return _cfHpeApi.HpeApiBuildSession.reportBuildPipelineStepStatus(buildSession.hpeApiBuildSession, buildStep.stepId, buildStep.startTime, buildStep.duration, buildStep.status, buildStep.result);
+  });
 };
 
 BuildSession.reportBuildPipelineTestResults = function (buildSession, buildStep, testResult) {
-  logger.info('Report build pipeline test result. build (%s) service (%s) test (%s) result (%s)', buildSession.build.buildId, buildSession.build.serviceName, testResult[0].name, testResult[0].status);
-
-  return _cfHpeApi.HpeApiBuildSession.reportBuildPipelineTestResults(buildSession.hpeApiBuildSession, buildStep.stepId, testResult);
+  return _rx2.default.Observable.just({}).doOnNext(function () {
+    return logger.info('Test result. build (%s) service (%s) test (%s) result (%s)', buildSession.build.buildId, buildSession.build.serviceName, testResult[0].name, testResult[0].status);
+  }).flatMap(function () {
+    return _cfHpeApi.HpeApiBuildSession.reportBuildPipelineTestResults(buildSession.hpeApiBuildSession, buildStep.stepId, testResult);
+  });
 };
 
 BuildSession.openHpeCiServer = function (session, build) {
@@ -67,7 +73,7 @@ BuildSession.openHpeCiServer = function (session, build) {
       return _rx2.default.Observable.just(ciServer);
     }
 
-    logger.info('Create hpe ci server. build (%s) id(%s) name (%s)', build.buildId, id, name);
+    logger.info('Create hpe ci server. build (%s) id (%s) name (%s)', build.buildId, id, name);
     return _cfHpeApi.HpeApiSession.createCiServer(session, id, name);
   }).map(function (ciServer) {
     return {
@@ -88,7 +94,7 @@ BuildSession.openHpePipeline = function (session, build, ciServer) {
       return _rx2.default.Observable.throw(error);
     }
 
-    return _rx2.default.Observable.just();
+    return _rx2.default.Observable.just({});
   }).map(function () {
     return {
       id: id,

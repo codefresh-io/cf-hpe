@@ -23,7 +23,7 @@ var FirebaseRx = exports.FirebaseRx = {};
 var FirebaseSnapshotRx = exports.FirebaseSnapshotRx = {};
 
 FirebaseRx.of = function (ref) {
-  return _rx2.default.Observable.of(ref);
+  return _rx2.default.Observable.just(ref);
 };
 FirebaseRx.root = function (ref) {
   return ref.root();
