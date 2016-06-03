@@ -53,7 +53,7 @@ Build.buildsFromFirebase = function () {
   return Build.openBuildLogsRef().map(function (buildLogsRef) {
     return buildLogsRef.orderByChild('data/started').startAt(Date.now() / 1000);
   }).flatMap(_firebaseRx.FirebaseRx.onChildAdded).doOnNext(function (snapshot) {
-    return logger.info('New build progress started. progress (%s)', snapshot.key());
+    return logger.info('New build detected. progress (%s)', snapshot.key());
   }).flatMap(function (snapshot) {
     return _rx2.default.Observable.zip(Build.findAccount(snapshot), Build.findService(snapshot), Build.findBuild(snapshot), function (account, service, build) {
       return new Build({
@@ -67,6 +67,8 @@ Build.buildsFromFirebase = function () {
         startTime: Date.now()
       });
     });
+  }).doOnNext(function (build) {
+    return logger.info('New build started. account (%s) service (%s) build (%s)', build.accountName, build.serviceName, build.buildId);
   });
 };
 
@@ -77,8 +79,10 @@ Build.openBuildLogsRef = function () {
 };
 
 Build.isHpeIntegrationAccount = function (account) {
-  return account.name === _hpeConfig.HpeConfig.CF_HPE_INTEGRATION_ACCOUNT || account.integrations.hpe && account.integrations.hpe.active;
+  return true;
 };
+//  (account.name === HpeConfig.CF_HPE_INTEGRATION_ACCOUNT ||
+//  account.integrations.hpe && account.integrations.hpe.active);
 
 Build.findAccount = function (buildLogSnapshot) {
   return _rx2.default.Observable.fromPromise(function () {

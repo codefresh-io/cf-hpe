@@ -22,9 +22,10 @@ export const BuildSession = Record({
 BuildSession.createForBuild = (build) =>
   Rx.Observable.just({})
     .doOnNext(() => logger.info(
-      'Open build session. build (%s) service (%s)',
-      build.buildId,
-      build.serviceName))
+      'Open build session. account (%s) service (%s) build (%s)',
+      build.accountName,
+      build.serviceName,
+      build.buildId))
     .doOnNext(() => logger.info(
       'Open hpe session. host (%s) user (%s)',
       HpeConfig.CF_HPE_SERVER_URL,
@@ -44,28 +45,21 @@ BuildSession.createForBuild = (build) =>
         }))));
 
 BuildSession.reportBuildPipelineStepStatus = (buildSession, buildStep) =>
-  Rx.Observable.just({})
-    .doOnNext(() => logger.info(
-      'Step result. build (%s) service (%s) step (%s) status (%s) result (%s)',
-      buildSession.build.buildId,
-      buildSession.build.serviceName,
-      buildStep.stepId,
-      buildStep.status,
-      buildStep.result))
-    .flatMap(() => HpeApiBuildSession.reportBuildPipelineStepStatus(
-      buildSession.hpeApiBuildSession,
-      buildStep.stepId,
-      buildStep.startTime,
-      buildStep.duration,
-      buildStep.status,
-      buildStep.result));
+  HpeApiBuildSession.reportBuildPipelineStepStatus(
+    buildSession.hpeApiBuildSession,
+    buildStep.stepId,
+    buildStep.startTime,
+    buildStep.duration,
+    buildStep.status,
+    buildStep.result);
 
 BuildSession.reportBuildPipelineTestResults = (buildSession, buildStep, testResult) =>
   Rx.Observable.just({})
     .doOnNext(() => logger.info(
-      'Test result. build (%s) service (%s) test (%s) result (%s)',
-      buildSession.build.buildId,
+      'Test result. account (%s) service (%s) build (%s) test (%s) result (%s)',
+      buildSession.build.accountName,
       buildSession.build.serviceName,
+      buildSession.build.buildId,
       testResult[0].name,
       testResult[0].status))
     .flatMap(() => HpeApiBuildSession.reportBuildPipelineTestResults(

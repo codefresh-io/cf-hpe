@@ -18,6 +18,22 @@ export const BuildStep = Record({
   result: null,
 });
 
+BuildStep.buildStepError = (build, error) =>
+  Rx.Observable.just({})
+    .doOnNext(() => logger.error(
+      'Build failed. account (%s) service (%s) build (%s) error (%s)',
+      build.accountName,
+      build.serviceName,
+      build.buildId,
+      error))
+    .map(() => new BuildStep({
+      stepId: 'pipeline',
+      startTime: build.startTime,
+      duration: Date.now() - build.startTime,
+      status: 'finished',
+      result: 'failure',
+    }));
+
 BuildStep.stepsFromBuild = (build) => {
   const runningStepObservable = BuildStep.runningStep(build).share();
   const finishedStepObservable = BuildStep.finishedStep(build).share();
@@ -27,41 +43,29 @@ BuildStep.stepsFromBuild = (build) => {
 
   return Rx.Observable.just({})
     .doOnNext(() => logger.info(
-      'Start processing build log steps. build (%s) service (%s)',
-      build.buildId,
-      build.serviceName))
+      'Start processing build log steps. account (%s) service (%s) build (%s)',
+      build.accountName,
+      build.serviceName,
+      build.buildId))
     .flatMap(Rx.Observable.concat(
       runningStepObservable,
       childStepsObservable,
       finishedStepObservable))
     .timeout(HpeConfig.CF_HPE_BUILD_TIMEOUT * 1000)
-    .catch(error => {
-      logger.error(
-        'Build failed. build (%s) service (%s) error (%s)',
-        build.buildId,
-        build.serviceName,
-        error);
-
-      return Rx.Observable.just(
-        new BuildStep({
-          stepId: 'pipeline',
-          startTime: build.startTime,
-          duration: Date.now() - build.startTime,
-          status: 'finished',
-          result: 'failure',
-        }));
-    })
+    .catch(error => BuildStep.buildStepError(build, error))
     .doOnNext(buildStep => logger.info(
-      'Build step. build (%s) service (%s) step (%s) status (%s) result (%s)',
-      build.buildId,
+      'Build step. account (%s) service (%s) build (%s) step (%s) status (%s) result (%s)',
+      build.accountName,
       build.serviceName,
+      build.buildId,
       buildStep.stepId,
       buildStep.status,
       buildStep.result))
     .doOnCompleted(() => logger.info(
-      'Build finished. build (%s) service (%s)',
-      build.buildId,
-      build.serviceName));
+      'Build finished. account (%s) service (%s) build (%s)',
+      build.accountName,
+      build.serviceName,
+      build.buildId));
 };
 
 BuildStep.runningStep = (build) =>
@@ -77,7 +81,8 @@ BuildStep.runningStep = (build) =>
         duration: 0,
         status: 'running',
         result: 'unavailable',
-      }));
+      }))
+    .timeout(5000);
 
 BuildStep.finishedStep = (build) =>
   FirebaseRx.of(build.ref)
