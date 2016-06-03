@@ -37,27 +37,33 @@ var BuildStep = exports.BuildStep = (0, _immutable.Record)({
   result: null
 });
 
-BuildStep.stepsFromBuild = function (build) {
-  logger.info('Start processing build log steps. build (%s) service (%s)', build.buildId, build.serviceName);
-
-  var buildRunningStepObservable = BuildStep.runningStep(build).share();
-  var finishedStepObservable = BuildStep.finishedStep(build).share();
-  var childStepsObservable = BuildStep.childSteps(build).takeUntil(finishedStepObservable).share();
-
-  return _rx2.default.Observable.concat(buildRunningStepObservable, childStepsObservable, finishedStepObservable).timeout(_hpeConfig.HpeConfig.CF_HPE_BUILD_TIMEOUT * 1000).catch(function (error) {
-    logger.error('Build failed. build (%s) service (%s) error (%s)', build.buildId, build.serviceName, error);
-
-    return _rx2.default.Observable.of(new BuildStep({
+BuildStep.buildStepError = function (build, error) {
+  return _rx2.default.Observable.just({}).doOnNext(function () {
+    return logger.error('Build failed. account (%s) service (%s) build (%s) error (%s)', build.accountName, build.serviceName, build.buildId, error);
+  }).map(function () {
+    return new BuildStep({
       stepId: 'pipeline',
       startTime: build.startTime,
       duration: Date.now() - build.startTime,
       status: 'finished',
       result: 'failure'
-    }));
+    });
+  });
+};
+
+BuildStep.stepsFromBuild = function (build) {
+  var runningStepObservable = BuildStep.runningStep(build).share();
+  var finishedStepObservable = BuildStep.finishedStep(build).share();
+  var childStepsObservable = BuildStep.childSteps(build).takeUntil(finishedStepObservable).share();
+
+  return _rx2.default.Observable.just({}).doOnNext(function () {
+    return logger.info('Start processing build log steps. account (%s) service (%s) build (%s)', build.accountName, build.serviceName, build.buildId);
+  }).flatMap(_rx2.default.Observable.concat(runningStepObservable, childStepsObservable, finishedStepObservable)).timeout(_hpeConfig.HpeConfig.CF_HPE_BUILD_TIMEOUT * 1000).catch(function (error) {
+    return BuildStep.buildStepError(build, error);
   }).doOnNext(function (buildStep) {
-    return logger.info('Build step. build (%s) service (%s) step (%s) status (%s) result (%s)', build.buildId, build.serviceName, buildStep.stepId, buildStep.status, buildStep.result);
+    return logger.info('Build step. account (%s) service (%s) build (%s) step (%s) status (%s) result (%s)', build.accountName, build.serviceName, build.buildId, buildStep.stepId, buildStep.status, buildStep.result);
   }).doOnCompleted(function () {
-    return logger.info('Build finished. build (%s) service (%s)', build.buildId, build.serviceName);
+    return logger.info('Build finished. account (%s) service (%s) build (%s)', build.accountName, build.serviceName, build.buildId);
   });
 };
 
@@ -70,7 +76,7 @@ BuildStep.runningStep = function (build) {
       status: 'running',
       result: 'unavailable'
     });
-  });
+  }).timeout(5000);
 };
 
 BuildStep.finishedStep = function (build) {
