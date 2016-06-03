@@ -60,10 +60,7 @@ Build.openBuildLogsRef = () =>
       'hpe-service',
       { admin: true }));
 
-Build.isHpeIntegrationAccount = (account) =>
-  true ||
-  (account.name === HpeConfig.CF_HPE_INTEGRATION_ACCOUNT ||
-  account.integrations.hpe && account.integrations.hpe.active);
+Build.isHpeIntegrationAccount = (account) => true;
 
 Build.findAccount = (buildLogSnapshot) =>
   Rx.Observable
