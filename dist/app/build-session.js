@@ -31,7 +31,7 @@ var BuildSession = exports.BuildSession = (0, _immutable.Record)({
 
 BuildSession.createForBuild = function (build) {
   return _rx2.default.Observable.just({}).doOnNext(function () {
-    return logger.info('Open build session. build (%s) service (%s)', build.buildId, build.serviceName);
+    return logger.info('Open build session. account (%s) service (%s) build (%s)', build.accountName, build.serviceName, build.buildId);
   }).doOnNext(function () {
     return logger.info('Open hpe session. host (%s) user (%s)', _hpeConfig.HpeConfig.CF_HPE_SERVER_URL, _hpeConfig.HpeConfig.CF_HPE_USER);
   }).flatMap(_cfHpeApi.HpeApiSession.create(hpeApiConfig)).flatMap(function (hpeApiSession) {
@@ -49,16 +49,12 @@ BuildSession.createForBuild = function (build) {
 };
 
 BuildSession.reportBuildPipelineStepStatus = function (buildSession, buildStep) {
-  return _rx2.default.Observable.just({}).doOnNext(function () {
-    return logger.info('Step result. build (%s) service (%s) step (%s) status (%s) result (%s)', buildSession.build.buildId, buildSession.build.serviceName, buildStep.stepId, buildStep.status, buildStep.result);
-  }).flatMap(function () {
-    return _cfHpeApi.HpeApiBuildSession.reportBuildPipelineStepStatus(buildSession.hpeApiBuildSession, buildStep.stepId, buildStep.startTime, buildStep.duration, buildStep.status, buildStep.result);
-  });
+  return _cfHpeApi.HpeApiBuildSession.reportBuildPipelineStepStatus(buildSession.hpeApiBuildSession, buildStep.stepId, buildStep.startTime, buildStep.duration, buildStep.status, buildStep.result);
 };
 
 BuildSession.reportBuildPipelineTestResults = function (buildSession, buildStep, testResult) {
   return _rx2.default.Observable.just({}).doOnNext(function () {
-    return logger.info('Test result. build (%s) service (%s) test (%s) result (%s)', buildSession.build.buildId, buildSession.build.serviceName, testResult[0].name, testResult[0].status);
+    return logger.info('Test result. account (%s) service (%s) build (%s) test (%s) result (%s)', buildSession.build.accountName, buildSession.build.serviceName, buildSession.build.buildId, testResult[0].name, testResult[0].status);
   }).flatMap(function () {
     return _cfHpeApi.HpeApiBuildSession.reportBuildPipelineTestResults(buildSession.hpeApiBuildSession, buildStep.stepId, testResult);
   });
