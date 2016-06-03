@@ -32,7 +32,7 @@ Build.buildsFromFirebase = () =>
       .startAt(Date.now() / 1000))
     .flatMap(FirebaseRx.onChildAdded)
     .doOnNext(snapshot => logger.info(
-      'New build progress started. progress (%s)',
+      'New build detected. progress (%s)',
       snapshot.key()))
     .flatMap(snapshot => Rx.Observable.zip(
       Build.findAccount(snapshot),
@@ -47,7 +47,12 @@ Build.buildsFromFirebase = () =>
         buildId: build._id.toString(),
         buildName: buildNameFromCommit(build.commit),
         startTime: Date.now(),
-      })));
+      })))
+    .doOnNext(build => logger.info(
+      'New build started. account (%s) service (%s) build (%s)',
+      build.accountName,
+      build.serviceName,
+      build.buildId));
 
 Build.openBuildLogsRef = () =>
   Rx.Observable
@@ -61,6 +66,8 @@ Build.openBuildLogsRef = () =>
       { admin: true }));
 
 Build.isHpeIntegrationAccount = (account) => true;
+//  (account.name === HpeConfig.CF_HPE_INTEGRATION_ACCOUNT ||
+//  account.integrations.hpe && account.integrations.hpe.active);
 
 Build.findAccount = (buildLogSnapshot) =>
   Rx.Observable

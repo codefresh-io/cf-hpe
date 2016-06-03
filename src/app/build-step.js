@@ -27,9 +27,10 @@ BuildStep.stepsFromBuild = (build) => {
 
   return Rx.Observable.just({})
     .doOnNext(() => logger.info(
-      'Start processing build log steps. build (%s) service (%s)',
-      build.buildId,
-      build.serviceName))
+      'Start processing build log steps. account (%s) service (%s) build (%s)',
+      build.accountName,
+      build.serviceName,
+      build.buildId))
     .flatMap(Rx.Observable.concat(
       runningStepObservable,
       childStepsObservable,
@@ -37,9 +38,10 @@ BuildStep.stepsFromBuild = (build) => {
     .timeout(HpeConfig.CF_HPE_BUILD_TIMEOUT * 1000)
     .catch(error => {
       logger.error(
-        'Build failed. build (%s) service (%s) error (%s)',
-        build.buildId,
+        'Build failed. account (%s) service (%s) build (%s) error (%s)',
+        build.accountName,
         build.serviceName,
+        build.buildId,
         error);
 
       return Rx.Observable.just(
@@ -52,16 +54,18 @@ BuildStep.stepsFromBuild = (build) => {
         }));
     })
     .doOnNext(buildStep => logger.info(
-      'Build step. build (%s) service (%s) step (%s) status (%s) result (%s)',
-      build.buildId,
+      'Build step. account (%s) service (%s) build (%s) step (%s) status (%s) result (%s)',
+      build.accountName,
       build.serviceName,
+      build.buildId,
       buildStep.stepId,
       buildStep.status,
       buildStep.result))
     .doOnCompleted(() => logger.info(
-      'Build finished. build (%s) service (%s)',
-      build.buildId,
-      build.serviceName));
+      'Build finished. account (%s) service (%s) build (%s)',
+      build.accountName,
+      build.serviceName,
+      build.buildId));
 };
 
 BuildStep.runningStep = (build) =>
