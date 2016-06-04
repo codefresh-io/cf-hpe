@@ -80,7 +80,7 @@ Build.openBuildLogsRef = function () {
 
 Build.isHpeIntegrationAccount = function (account) {
   return true;
-};
+}; // eslint-disable-line no-unused-vars
 //  (account.name === HpeConfig.CF_HPE_INTEGRATION_ACCOUNT ||
 //  account.integrations.hpe && account.integrations.hpe.active);
 
