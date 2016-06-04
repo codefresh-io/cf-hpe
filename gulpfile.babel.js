@@ -27,10 +27,20 @@ gulp.task('bump-version', () => {
 gulp.task('clean', () =>
   del(['dist']));
 
-gulp.task('build', ['clean'], () =>
+gulp.task('build-babel', () =>
   gulp.src(['src/**/*.js'])
     .pipe(babel())
     .pipe(gulp.dest('dist')));
+
+gulp.task('build-assets', () =>
+  gulp.src(['src/**/*.json'])
+    .pipe(gulp.dest('dist')));
+
+gulp.task('build', ['clean'], callback =>
+  runSequence(
+    'build-babel',
+    'build-assets',
+    callback));
 
 gulp.task('git-commit-updates', () =>
   gulp.src('.')

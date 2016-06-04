@@ -65,7 +65,7 @@ Build.openBuildLogsRef = () =>
       'hpe-service',
       { admin: true }));
 
-Build.isHpeIntegrationAccount = (account) => true;
+Build.isHpeIntegrationAccount = (account) => true; // eslint-disable-line no-unused-vars
 //  (account.name === HpeConfig.CF_HPE_INTEGRATION_ACCOUNT ||
 //  account.integrations.hpe && account.integrations.hpe.active);
 
