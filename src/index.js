@@ -4,6 +4,7 @@ import { BuildSession } from 'app/build-session';
 import { CommonPipelineReporter } from 'app/reporters/common-pipeline-reporter';
 import { MochaJsonStreamReporter } from 'app/reporters/mocha-json-stream-reporter';
 import { AquaSecurityReporter } from 'app/reporters/aqua-security-reporter';
+//import { hpeDefects} from 'app/defects';
 
 Build.buildsFromFirebase().flatMap(build =>
   BuildSession.createForBuild(build).map(buildSession => {
@@ -13,3 +14,5 @@ Build.buildsFromFirebase().flatMap(build =>
     AquaSecurityReporter.create(buildStepObservable, buildSession).subscribe();
     return {};
   })).subscribe();
+
+//hpeDefects.start();

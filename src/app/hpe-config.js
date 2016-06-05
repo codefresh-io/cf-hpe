@@ -60,5 +60,11 @@ export const HpeConfig = config({
     type: 'string',
     required: true,
   },
+
+  CF_QUEUE: {
+    env: 'CF_QUEUE',
+    type: 'string',
+    required: true,
+  },
 });
 

@@ -11,11 +11,13 @@
   "dependencies": {
     "12factor-config": "^1.1.0",
     "cf-hpe-api": "git+https://github.com/liorshalev01/cf-hpe-api.git#develop",
+    "cf-queue": "git+https://github.com/codefresh-io/cf-queue.git#58c4f3f5942e480826167d3199ff37ae5370757b",
     "firebase": "^2.4.2",
     "firebase-token-generator": "^2.0.0",
     "immutable": "^3.8.1",
     "mongoose": "^4.4.16",
     "node-uuid": "^1.4.7",
+    "q": "^1.4.1",
     "ramda": "^0.21.0",
     "request": "^2.72.0",
     "rx": "^4.1.0"
