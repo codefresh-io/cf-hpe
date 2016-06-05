@@ -1,5 +1,9 @@
 'use strict';
 
+var _ramda = require('ramda');
+
+var _ramda2 = _interopRequireDefault(_ramda);
+
 var _rx = require('rx');
 
 var _rx2 = _interopRequireDefault(_rx);
@@ -25,11 +29,19 @@ var logger = _logger.Logger.create('CfHpe');
 logger.info('Start with configuration. ');
 
 _build.Build.buildsFromFirebase().flatMap(function (build) {
+  var buildError = function buildError(error) {
+    return logger.error('Build error. account (%s) service (%s) build (%) error (%s)', build.accountName, build.serviceName, build.buildId, error);
+  };
+
   return _buildSession.BuildSession.createForBuild(build).map(function (buildSession) {
     var buildStepObservable = _buildStep.BuildStep.stepsFromBuild(build).share();
-    _commonPipelineReporter.CommonPipelineReporter.create(buildStepObservable, buildSession).subscribe();
-    _mochaJsonStreamReporter.MochaJsonStreamReporter.create(buildStepObservable, buildSession).subscribe();
-    _aquaSecurityReporter.AquaSecurityReporter.create(buildStepObservable, buildSession).subscribe();
+
+    _commonPipelineReporter.CommonPipelineReporter.create(buildStepObservable, buildSession).subscribe(_ramda2.default.noop, buildError);
+
+    _mochaJsonStreamReporter.MochaJsonStreamReporter.create(buildStepObservable, buildSession).subscribe(_ramda2.default.noop, buildError);
+
+    _aquaSecurityReporter.AquaSecurityReporter.create(buildStepObservable, buildSession).subscribe(_ramda2.default.noop, buildError);
+
     return {};
   });
 }).catch(function (error) {
