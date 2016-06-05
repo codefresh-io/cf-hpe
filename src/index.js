@@ -12,4 +12,5 @@ Build.buildsFromFirebase().flatMap(build =>
     MochaJsonStreamReporter.create(buildStepObservable, buildSession).subscribe();
     AquaSecurityReporter.create(buildStepObservable, buildSession).subscribe();
     return {};
-  })).subscribe();
+  }))
+  .subscribe();

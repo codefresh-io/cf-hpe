@@ -18,22 +18,6 @@ export const BuildStep = Record({
   result: null,
 });
 
-BuildStep.buildStepError = (build, error) =>
-  Rx.Observable.just({})
-    .doOnNext(() => logger.error(
-      'Build failed. account (%s) service (%s) build (%s) error (%s)',
-      build.accountName,
-      build.serviceName,
-      build.buildId,
-      error))
-    .map(() => new BuildStep({
-      stepId: 'pipeline',
-      startTime: build.startTime,
-      duration: Date.now() - build.startTime,
-      status: 'finished',
-      result: 'failure',
-    }));
-
 BuildStep.stepsFromBuild = (build) => {
   const runningStepObservable = BuildStep.runningStep(build).share();
   const finishedStepObservable = BuildStep.finishedStep(build).share();
@@ -52,7 +36,20 @@ BuildStep.stepsFromBuild = (build) => {
       childStepsObservable,
       finishedStepObservable))
     .timeout(HpeConfig.CF_HPE_BUILD_TIMEOUT * 1000)
-    .catch(error => BuildStep.buildStepError(build, error))
+    .catch(error => Rx.Observable.just({})
+      .doOnNext(() => logger.error(
+        'Build failed. account (%s) service (%s) build (%s) error (%s)',
+        build.accountName,
+        build.serviceName,
+        build.buildId,
+        error))
+      .map(() => new BuildStep({
+        stepId: 'pipeline',
+        startTime: build.startTime,
+        duration: Date.now() - build.startTime,
+        status: 'finished',
+        result: 'failure',
+      })))
     .doOnNext(buildStep => logger.info(
       'Build step. account (%s) service (%s) build (%s) step (%s) status (%s) result (%s)',
       build.accountName,
