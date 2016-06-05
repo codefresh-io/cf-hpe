@@ -1,5 +1,6 @@
 /* eslint-disable new-cap */
 import Rx from 'rx';
+import util from 'util';
 import { Record } from 'immutable';
 import { HpeApiConfig, HpeApiSession, HpeApiBuildSession } from 'cf-hpe-api';
 import { Logger } from 'lib/logger';
@@ -69,7 +70,7 @@ BuildSession.reportBuildPipelineTestResults = (buildSession, buildStep, testResu
 
 BuildSession.openHpeCiServer = (session, build) => {
   const id = build.accountId;
-  const name = build.accountName;
+  const name = util.format('%s-%s', build.accountName, build.accountId);
 
   return HpeApiSession
     .findCiServer(session, id)

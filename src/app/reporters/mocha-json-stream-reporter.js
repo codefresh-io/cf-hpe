@@ -15,7 +15,7 @@ MochaJsonStreamReporter.create = (buildStepObservable, buildSession) =>
     .filter(step => R.contains(step.stepId, ['unit-test-script']))
     .flatMap(step => BuildStep
       .childStepLogs(step)
-      .filter(R.test(/^\["(pass|fail)",{"title":.+}]\s+$/))
+      .filter(R.test(/^\["(pass|fail)",{"title":"[\s\S]+","fullTitle":"[\s\S]+",[\s\S]+}]/m))
       .map(JSON.parse)
       .map(testResult => HpeApiTestResult.create(
         testResult[1].fullTitle,
