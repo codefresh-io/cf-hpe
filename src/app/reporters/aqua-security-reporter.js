@@ -13,7 +13,7 @@ export const AquaSecurityReporter = {};
 
 AquaSecurityReporter.create = (buildStepObservable, buildSession) =>
   buildStepObservable
-    .filter(step => R.contains(step.stepId, ['integration-test-script']))
+    .filter(step => R.contains(step.stepId, ['security-validation']))
     .flatMap(step => Rx.Observable.from(aquaResults.cves)
       .map(cve => HpeApiTestResult.create(
         cve.name,
