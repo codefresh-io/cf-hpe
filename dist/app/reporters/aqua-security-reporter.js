@@ -29,7 +29,7 @@ var AquaSecurityReporter = exports.AquaSecurityReporter = {};
 
 AquaSecurityReporter.create = function (buildStepObservable, buildSession) {
   return buildStepObservable.filter(function (step) {
-    return _ramda2.default.contains(step.stepId, ['integration-test-script']);
+    return _ramda2.default.contains(step.stepId, ['security-validation']);
   }).flatMap(function (step) {
     return _rx2.default.Observable.from(aquaResults.cves).map(function (cve) {
       return _cfHpeApi.HpeApiTestResult.create(cve.name, step.startTime, 1000, hpeTestResultMapping[cve.severity], cve.type, cve.description, cve.file);
