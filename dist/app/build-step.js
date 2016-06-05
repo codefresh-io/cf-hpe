@@ -37,9 +37,15 @@ var BuildStep = exports.BuildStep = (0, _immutable.Record)({
   result: null
 });
 
-BuildStep.buildStepError = function (build, error) {
+BuildStep.stepsFromBuild = function (build) {
+  var runningStepObservable = BuildStep.runningStep(build).share();
+  var finishedStepObservable = BuildStep.finishedStep(build).share();
+  var childStepsObservable = BuildStep.childSteps(build).takeUntil(finishedStepObservable).share();
+
   return _rx2.default.Observable.just({}).doOnNext(function () {
-    return logger.error('Build failed. account (%s) service (%s) build (%s) error (%s)', build.accountName, build.serviceName, build.buildId, error);
+    return logger.info('Start processing build log steps. account (%s) service (%s) build (%s)', build.accountName, build.serviceName, build.buildId);
+  }).flatMap(_rx2.default.Observable.concat(runningStepObservable, childStepsObservable, finishedStepObservable)).timeout(_hpeConfig.HpeConfig.CF_HPE_BUILD_TIMEOUT * 1000, _rx2.default.Observable.just({}).doOnNext(function () {
+    return logger.error('Build timeout. account (%s) service (%s) build (%s)', build.accountName, build.serviceName, build.buildId);
   }).map(function () {
     return new BuildStep({
       stepId: 'pipeline',
@@ -48,19 +54,7 @@ BuildStep.buildStepError = function (build, error) {
       status: 'finished',
       result: 'failure'
     });
-  });
-};
-
-BuildStep.stepsFromBuild = function (build) {
-  var runningStepObservable = BuildStep.runningStep(build).share();
-  var finishedStepObservable = BuildStep.finishedStep(build).share();
-  var childStepsObservable = BuildStep.childSteps(build).takeUntil(finishedStepObservable).share();
-
-  return _rx2.default.Observable.just({}).doOnNext(function () {
-    return logger.info('Start processing build log steps. account (%s) service (%s) build (%s)', build.accountName, build.serviceName, build.buildId);
-  }).flatMap(_rx2.default.Observable.concat(runningStepObservable, childStepsObservable, finishedStepObservable)).timeout(_hpeConfig.HpeConfig.CF_HPE_BUILD_TIMEOUT * 1000).catch(function (error) {
-    return BuildStep.buildStepError(build, error);
-  }).doOnNext(function (buildStep) {
+  })).doOnNext(function (buildStep) {
     return logger.info('Build step. account (%s) service (%s) build (%s) step (%s) status (%s) result (%s)', build.accountName, build.serviceName, build.buildId, buildStep.stepId, buildStep.status, buildStep.result);
   }).doOnCompleted(function () {
     return logger.info('Build finished. account (%s) service (%s) build (%s)', build.accountName, build.serviceName, build.buildId);

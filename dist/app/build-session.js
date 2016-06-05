@@ -9,6 +9,10 @@ var _rx = require('rx');
 
 var _rx2 = _interopRequireDefault(_rx);
 
+var _util = require('util');
+
+var _util2 = _interopRequireDefault(_util);
+
 var _immutable = require('immutable');
 
 var _cfHpeApi = require('cf-hpe-api');
@@ -19,8 +23,10 @@ var _hpeConfig = require('./hpe-config');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var logger = _logger.Logger.create('BuildSession'); /* eslint-disable new-cap */
+/* eslint-disable new-cap */
 
+
+var logger = _logger.Logger.create('BuildSession');
 
 var hpeApiConfig = _cfHpeApi.HpeApiConfig.create(_hpeConfig.HpeConfig.CF_HPE_SERVER_URL, _hpeConfig.HpeConfig.CF_HPE_USER, _hpeConfig.HpeConfig.CF_HPE_PASSWORD, _hpeConfig.HpeConfig.CF_HPE_SHARED_SPACE, _hpeConfig.HpeConfig.CF_HPE_WORKSPACE);
 
@@ -62,7 +68,7 @@ BuildSession.reportBuildPipelineTestResults = function (buildSession, buildStep,
 
 BuildSession.openHpeCiServer = function (session, build) {
   var id = build.accountId;
-  var name = build.accountName;
+  var name = _util2.default.format('%s-%s', build.accountName, build.accountId);
 
   return _cfHpeApi.HpeApiSession.findCiServer(session, id).flatMap(function (ciServer) {
     if (ciServer) {
