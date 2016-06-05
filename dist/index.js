@@ -30,7 +30,7 @@ logger.info('Start with configuration. ');
 
 _build.Build.buildsFromFirebase().flatMap(function (build) {
   var buildError = function buildError(error) {
-    return logger.error('Build error. account (%s) service (%s) build (%) error (%s)', build.accountName, build.serviceName, build.buildId, error);
+    return logger.error('Build error. account (%s) service (%s) build (%s) error (%s)', build.accountName, build.serviceName, build.buildId, error);
   };
 
   return _buildSession.BuildSession.createForBuild(build).map(function (buildSession) {
