@@ -15,7 +15,7 @@ logger.info('Start with configuration. ');
 Build.buildsFromFirebase()
   .flatMap(build => {
     const buildError = (error) => logger.error(
-      'Build error. account (%s) service (%s) build (%) error (%s)',
+      'Build error. account (%s) service (%s) build (%s) error (%s)',
       build.accountName,
       build.serviceName,
       build.buildId,
