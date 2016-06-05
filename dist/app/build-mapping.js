@@ -24,8 +24,9 @@ HpeStatusMapping.isStatus = function (status) {
 var HpePipelineStepMapping = exports.HpePipelineStepMapping = {
   'Building Docker Image': 'build-dockerfile',
   'Running Unit Tests': 'unit-test-script',
-  'Running Integration Tests': 'integration-test-script',
-  'security-validation': 'security-validation',
+  //  'Running Integration Tests': 'integration-test-script',
+  'Running Integration Tests': 'security-validation',
+  //  'security-validation': 'security-validation',
   'Running Deploy script': 'deploy-script'
 };
 
