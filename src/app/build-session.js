@@ -57,10 +57,11 @@ BuildSession.reportBuildPipelineStepStatus = (buildSession, buildStep) =>
 BuildSession.reportBuildPipelineTestResults = (buildSession, buildStep, testResult) =>
   Rx.Observable.just({})
     .doOnNext(() => logger.info(
-      'Test result. account (%s) service (%s) build (%s) test (%s) result (%s)',
+      'Test result. account (%s) service (%s) build (%s) step (%s) test (%s) result (%s)',
       buildSession.build.accountName,
       buildSession.build.serviceName,
       buildSession.build.buildId,
+      buildStep.stepId,
       testResult[0].name,
       testResult[0].status))
     .flatMap(() => HpeApiBuildSession.reportBuildPipelineTestResults(
