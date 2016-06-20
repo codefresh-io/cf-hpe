@@ -26,7 +26,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var logger = _logger.Logger.create('CfHpe');
 
-logger.info('Start with configuration. ');
+logger.info('Start with configuration *.');
 
 _build.Build.buildsFromFirebase().flatMap(function (build) {
   var buildError = function buildError(error) {

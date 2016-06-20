@@ -29,12 +29,14 @@ var AquaSecurityReporter = exports.AquaSecurityReporter = {};
 
 AquaSecurityReporter.create = function (buildStepObservable, buildSession) {
   return buildStepObservable.filter(function (step) {
-    return _ramda2.default.contains(step.stepId, ['security-validation']);
+    return _ramda2.default.contains(step.stepId, ['integration-test-script']);
+  }).map(function (step) {
+    return _ramda2.default.assoc('stepId', 'security-validation', step.toJS());
   }).flatMap(function (step) {
-    return _rx2.default.Observable.from(aquaResults.cves).map(function (cve) {
+    return _buildSession.BuildSession.reportBuildPipelineStepStatus(buildSession, step).flatMap(_rx2.default.Observable.from(aquaResults.cves).map(function (cve) {
       return _cfHpeApi.HpeApiTestResult.create(cve.name, step.startTime, 1000, hpeTestResultMapping[cve.severity], cve.type, cve.description, cve.file);
     }).flatMap(function (hpeApiTestResult) {
       return _buildSession.BuildSession.reportBuildPipelineTestResults(buildSession, step, [hpeApiTestResult]);
-    });
+    }));
   });
 };

@@ -60,7 +60,7 @@ BuildSession.reportBuildPipelineStepStatus = function (buildSession, buildStep) 
 
 BuildSession.reportBuildPipelineTestResults = function (buildSession, buildStep, testResult) {
   return _rx2.default.Observable.just({}).doOnNext(function () {
-    return logger.info('Test result. account (%s) service (%s) build (%s) test (%s) result (%s)', buildSession.build.accountName, buildSession.build.serviceName, buildSession.build.buildId, testResult[0].name, testResult[0].status);
+    return logger.info('Test result. account (%s) service (%s) build (%s) step (%s) test (%s) result (%s)', buildSession.build.accountName, buildSession.build.serviceName, buildSession.build.buildId, buildStep.stepId, testResult[0].name, testResult[0].status);
   }).flatMap(function () {
     return _cfHpeApi.HpeApiBuildSession.reportBuildPipelineTestResults(buildSession.hpeApiBuildSession, buildStep.stepId, testResult);
   });
