@@ -10,7 +10,7 @@ import { Logger } from 'lib/logger';
 
 const logger = Logger.create('CfHpe');
 
-logger.info('Start with configuration *.');
+logger.info('Start with configuration.');
 
 Build.buildsFromFirebase()
   .flatMap(build => {
